@@ -19,5 +19,16 @@
   },
   "documentationUrl": "https://example.com/",
   "changelogUrl": "https://example.com/changelog.html",
-  "licensesUrl": "https://example.com/licensing.html"
+  "licensesUrl": "https://example.com/licensing.html",
+  "scripts": {
+    "release": "semantic-release"
+  },
+  "devDependencies": {
+    "semantic-release": "^22.0.0",
+    "@semantic-release/changelog": "^6.0.2",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^9.0.3",
+    "@semantic-release/commit-analyzer": "^9.0.2",
+    "@semantic-release/release-notes-generator": "^10.0.3"
+  }
 }
