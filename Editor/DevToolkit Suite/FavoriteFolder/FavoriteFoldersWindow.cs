@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-//slowac
+
 namespace DevToolkit_Suite
 {
     public class FavoriteFoldersWindow : EditorWindow
