@@ -1,0 +1,6 @@
+{
+  "name": "OGBCrew_DevToolkitSuite",
+  "includePlatforms": [ "Editor" ],
+  "references": [],
+  "autoReferenced": true
+}
