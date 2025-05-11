@@ -4,12 +4,20 @@
   "displayName": "DevToolkit Suite",
   "description": "All-in-one editor toolkit for optimizing your Unity workflow — from project organization to runtime data inspection.",
   "unity": "2022.3",
-  "documentationUrl": "https://example.com/",
-  "changelogUrl": "https://example.com/changelog.html",
-  "licensesUrl": "https://example.com/licensing.html",
+  "hideInEditor": false,
+  "keywords": [
+    "editor",
+    "toolkit",
+    "unity",
+    "utilities",
+    "devtools"
+  ],
   "author": {
     "name": "OGB Crew",
     "email": "info@ogbcrew.com",
     "url": "https://ogbcrew.com"
-  }
+  },
+  "documentationUrl": "https://example.com/",
+  "changelogUrl": "https://example.com/changelog.html",
+  "licensesUrl": "https://example.com/licensing.html"
 }
