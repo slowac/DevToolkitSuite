@@ -44,11 +44,20 @@ DevToolkit Suite is a comprehensive and modular Unity Editor extension designed 
 
 ##  ✨ Installation
 
-### 🧩 Unity Package Manager:
+### 🧩 Unity Package Manager (via Manifest File) :
+Add the following line to your Packages/manifest.json:
+
 ``` "com.ogbcrew.devtoolkitsuite": "https://github.com/slowac/com.ogbcrew.devtoolkitsuite.git" ```
+
+### 📃 Unity Package Manager (via Git URL)
+Paste this URL into the Unity Package Manager's "Add package from git URL" field:
+
+``` https://github.com/slowac/com.ogbcrew.devtoolkitsuite.git ```
+
 
 ### 📦 NPM:
 ``` npm install https://github.com/slowac/com.ogbcrew.devtoolkitsuite.git ```
+
 
 
 ## 📄 License
