@@ -4,7 +4,7 @@
 
 DevToolkit Suite is a comprehensive and modular Unity Editor extension designed to streamline development workflows, improve project organization, and offer powerful runtime and data inspection tools.
 
-## 🔧 Features
+# 🔧 Features
 
 ### 🔐 PlayerPrefs Editor
 - View and edit all PlayerPrefs keys
@@ -42,7 +42,7 @@ DevToolkit Suite is a comprehensive and modular Unity Editor extension designed 
 - Detect missing components and unused scripts
 - Highlight usage distribution and select affected GameObjects
 
-##  ✨ Installation
+#  ✨ Installation
 
 ### 🧩 Unity Package Manager (via Manifest File) :
 Add the following line to your Packages/manifest.json:
@@ -60,12 +60,12 @@ Paste this URL into the Unity Package Manager's "Add package from git URL" field
 
 
 
-## 📄 License
+# 📄 License
 
 This project is licensed under the terms of the MIT License.  
 For more information, see the [LICENSE.md](LICENSE.md) file included in this repository.
 
-## ℹ️ Links
+# ℹ️ Links
 
 [Website](https://ogbcrew.com)
 
