@@ -42,6 +42,14 @@ DevToolkit Suite is a comprehensive and modular Unity Editor extension designed 
 - Detect missing components and unused scripts
 - Highlight usage distribution and select affected GameObjects
 
+### 📝 Scene Notes System
+- Visually place notes directly in the Scene View for better level design collaboration
+- Supports multiple categories like Bug, Idea, Reminder, and more
+- Icons automatically change based on category and completion status
+- Quickly focus on or manage notes via the overlay or Scene Notes Window
+- Ideal for team workflows, level reviews, and TODO planning directly in the editor
+
+
 #  ✨ Installation
 
 ### 🧩 Unity Package Manager (via Manifest File) :
