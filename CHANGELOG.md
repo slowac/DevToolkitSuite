@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.0.0...v1.1.0) (2025-05-13)
+
+
+### Features
+
+* add Scene Notes system for placing in-scene annotations ([01e5900](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/commit/01e59005a027fff7de538b2d5273bdcb4a2351ad))
+
 # 1.0.0 (2025-05-11)
 
 
