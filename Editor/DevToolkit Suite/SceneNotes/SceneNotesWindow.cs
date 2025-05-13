@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class SceneNotesWindow : EditorWindow
 {
-    [MenuItem("Tools/Editor Pack Ultimate/Scene Notes")]
+    [MenuItem("Tools/DevToolkit Suite/Scene Notes")]
     public static void ShowWindow()
     {
         var window = GetWindow<SceneNotesWindow>("Scene Notes");
