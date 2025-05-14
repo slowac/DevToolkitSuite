@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.1.0...v1.2.0) (2025-05-14)
+
+
+### Features
+
+* Add Scene Camera Bookmarks system for quick view navigation ([f22ba2a](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/commit/f22ba2a386d3a9edbba1cafcbe02abf5d2673fc4))
+
 # [1.1.0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.0.0...v1.1.0) (2025-05-13)
 
 
