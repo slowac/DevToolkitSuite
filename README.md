@@ -49,6 +49,13 @@ DevToolkit Suite is a comprehensive and modular Unity Editor extension designed 
 - Quickly focus on or manage notes via the overlay or Scene Notes Window
 - Ideal for team workflows, level reviews, and TODO planning directly in the editor
 
+### 🎯 Scene Camera Bookmarks
+- Save and recall custom camera views in the Scene View for faster navigation
+- Instantly jump to saved positions using the Go To button in the overlay or window
+- Rename or delete bookmarks with a clean and modern UI
+- Fully synchronized between the overlay panel and the editor window
+- Ideal for level design, debugging, or returning to complex scene areas with precision
+
 
 #  ✨ Installation
 
@@ -66,7 +73,7 @@ Paste this URL into the Unity Package Manager's "Add package from git URL" field
 ### 📦 NPM:
 ``` npm install https://github.com/slowac/com.ogbcrew.devtoolkitsuite.git ```
 
-
+## This package is still under development. Please contact us if you find any bugs.
 
 # 📄 License
 
