@@ -72,7 +72,7 @@ namespace EPU.PlayerPrefsEditor
 #elif UNITY_EDITOR_OSX
         private readonly char[] invalidFilenameChars = { '$', '%', '&', '\\', '/', ':', '<', '>', '|', '~' };
 #endif
-        [MenuItem("Tools/DevToolkit Suite/PlayerPrefs Editor", false, 1)]
+        [MenuItem("Tools/DevToolkit Suite/PlayerPrefs Editor", false, 11)]
         static void ShowWindow()
         {
             PreferencesEditorWindow window = EditorWindow.GetWindow<PreferencesEditorWindow>(false, "PlayerPrefs Editor");

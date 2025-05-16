@@ -24,7 +24,7 @@ namespace DevToolkit_Suite
         private bool showBrokenLinks = true;
         private string searchQuery = "";
 
-        [MenuItem("Tools/DevToolkit Suite/Scene & Level Info Panel")]
+        [MenuItem("Tools/DevToolkit Suite/Scene & Level Info Panel",false,36)]
         public static void ShowWindow()
         {
             GetWindow<SceneLevelInfoPanel>("Scene Info").minSize = new Vector2(420, 520);

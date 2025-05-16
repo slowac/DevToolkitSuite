@@ -11,11 +11,25 @@ public class SceneCameraBookmarks : EditorWindow
     private int renamingIndex = -1;
     private string renamingBuffer = "";
 
+    private static SceneCameraBookmarks currentInstance;
+
+    private void OnEnable()
+    {
+        currentInstance = this;
+    }
+
+
     [MenuItem("Tools/DevToolkit Suite/Scene Camera Bookmarks")]
     public static void ShowWindow()
     {
         var window = GetWindow<SceneCameraBookmarks>("Scene Camera Bookmarks");
         window.minSize = new Vector2(400, 500);
+        currentInstance = window;
+    }
+
+    public static void ForceRepaint()
+    {
+        currentInstance?.Repaint();
     }
 
     private void OnGUI()
@@ -91,6 +105,7 @@ public class SceneCameraBookmarks : EditorWindow
                 {
                     bookmark.name = renamingBuffer;
                     renamingIndex = -1;
+                    SceneCameraBookmarksOverlay.Refresh(); // sync overlay
                 }
 
                 if (GUILayout.Button("Cancel", GUILayout.Height(22), GUILayout.Width(60)))
@@ -112,6 +127,7 @@ public class SceneCameraBookmarks : EditorWindow
             {
                 bookmarks.RemoveAt(i);
                 i--;
+                SceneCameraBookmarksOverlay.Refresh(); // sync overlay
                 EditorGUILayout.EndHorizontal();
                 EditorGUILayout.EndVertical();
                 GUI.backgroundColor = Color.white;
@@ -143,6 +159,9 @@ public class SceneCameraBookmarks : EditorWindow
             });
 
             newBookmarkName = "";
+
+            Repaint(); // update this window
+            SceneCameraBookmarksOverlay.Refresh(); // update overlay
         }
     }
 }

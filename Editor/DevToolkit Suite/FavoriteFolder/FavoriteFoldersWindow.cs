@@ -14,7 +14,7 @@ namespace DevToolkit_Suite
         private GUIStyle pingButtonStyle;
         private Texture2D pingIcon;
 
-        [MenuItem("Tools/DevToolkit Suite/Favorite Folders")]
+        [MenuItem("Tools/DevToolkit Suite/Favorite Folders",false,24)]
         public static void ShowWindow()
         {
             var window = GetWindow<FavoriteFoldersWindow>("Favorite Folders");

@@ -13,7 +13,7 @@ namespace DevToolkit_Suite
         private GUIStyle labelStyle;
         private GUIStyle boxStyle;
 
-        [MenuItem("Tools/DevToolkit Suite/Auto Folder Creator")]
+        [MenuItem("Tools/DevToolkit Suite/Auto Folder Creator",false,23)]
         public static void ShowWindow()
         {
             var window = GetWindow<AutoFolderCreatorWindow>("Auto Folder Creator");

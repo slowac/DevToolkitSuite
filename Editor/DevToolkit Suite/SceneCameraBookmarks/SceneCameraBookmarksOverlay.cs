@@ -1,20 +1,33 @@
 #if UNITY_2021_2_OR_NEWER
+using UnityEditor;
 using UnityEditor.Overlays;
 using UnityEngine;
-using UnityEditor; 
 using UnityEngine.UIElements;
-using System.Collections.Generic;
 
 [Overlay(typeof(SceneView), "Scene Camera Bookmarks")]
 public class SceneCameraBookmarksOverlay : Overlay
 {
-    private static List<CameraBookmark> bookmarks => CameraBookmarkStorage.bookmarks;
+    private static SceneCameraBookmarksOverlay instance;
+    private VisualElement contentRoot;
 
     public override VisualElement CreatePanelContent()
     {
+        instance = this;
+        contentRoot = new VisualElement();
+        Refresh();
+        return contentRoot;
+    }
+
+    private VisualElement BuildContent()
+    {
         var root = new VisualElement
         {
-            style = { paddingTop = 6, paddingBottom = 6, paddingLeft = 6, paddingRight = 6 }
+            style = {
+                paddingTop = 6,
+                paddingBottom = 6,
+                paddingLeft = 6,
+                paddingRight = 6
+            }
         };
 
         var nameField = new TextField("Name") { value = "" };
@@ -24,16 +37,16 @@ public class SceneCameraBookmarksOverlay : Overlay
         {
             SceneCameraBookmarksAccessor.AddBookmark(nameField.value);
             nameField.value = "";
-            SceneView.RepaintAll();
+            Refresh(); // Paneli yeniden oluþtur
         })
         {
             text = "Add Bookmark"
         };
         root.Add(addButton);
 
-        if (bookmarks.Count > 0)
+        if (CameraBookmarkStorage.bookmarks.Count > 0)
         {
-            foreach (var bm in bookmarks)
+            foreach (var bm in CameraBookmarkStorage.bookmarks)
             {
                 var card = new VisualElement
                 {
@@ -61,7 +74,10 @@ public class SceneCameraBookmarksOverlay : Overlay
                 var goButton = new Button(() =>
                 {
                     SceneView.lastActiveSceneView.LookAt(bm.position, bm.rotation);
-                }) { text = "Go" };
+                })
+                {
+                    text = "Go"
+                };
 
                 card.Add(label);
                 card.Add(goButton);
@@ -72,22 +88,14 @@ public class SceneCameraBookmarksOverlay : Overlay
 
         return root;
     }
-}
 
-public static class SceneCameraBookmarksAccessor
-{
-    public static void AddBookmark(string name)
+    public static void Refresh()
     {
-        var view = SceneView.lastActiveSceneView;
-        if (view != null)
-        {
-            CameraBookmarkStorage.bookmarks.Add(new CameraBookmark
-            {
-                name = string.IsNullOrWhiteSpace(name) ? $"Bookmark {CameraBookmarkStorage.bookmarks.Count + 1}" : name,
-                position = view.camera.transform.position,
-                rotation = view.camera.transform.rotation
-            });
-        }
+        if (instance == null || instance.contentRoot == null)
+            return;
+
+        instance.contentRoot.Clear();
+        instance.contentRoot.Add(instance.BuildContent());
     }
 }
 #endif

@@ -22,7 +22,7 @@ namespace DevToolkit_Suite
             "UnityEngine", "UnityEditor", "TMPro", "Cinemachine"
         };
 
-        [MenuItem("Tools/DevToolkit Suite/ScriptableObject Browser", false,1)]
+        [MenuItem("Tools/DevToolkit Suite/ScriptableObject Browser", false, 12)]
         public static void ShowWindow()
         {
             GetWindow<ScriptableObjectBrowserWindow>("ScriptableObject Browser");

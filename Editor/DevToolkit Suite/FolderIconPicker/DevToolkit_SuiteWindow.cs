@@ -17,7 +17,7 @@ namespace DevToolkit_Suite
 
         private Object selectedFolder;
 
-        [MenuItem("Tools/DevToolkit Suite/Folder Icon Picker")]
+        [MenuItem("Tools/DevToolkit Suite/Folder Icon Picker",false,25)]
         public static void ShowWindow()
         {
             var window = GetWindow<DevToolkit_SuiteWindow>("Folder Icon Picker");

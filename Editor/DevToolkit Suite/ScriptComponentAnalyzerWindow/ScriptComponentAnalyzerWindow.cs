@@ -41,7 +41,7 @@ namespace DevToolkit_Suite
             { "TextContainer", "Legacy text bounding box from TMP or old TMPro versions." }
         };
 
-        [MenuItem("Tools/DevToolkit Suite/Script & Component Analyzer")]
+        [MenuItem("Tools/DevToolkit Suite/Script & Component Analyzer",false,37)]
         public static void ShowWindow()
         {
             GetWindow<ScriptComponentAnalyzerWindow>("Script Analyzer");

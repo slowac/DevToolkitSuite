@@ -6,6 +6,18 @@ using System.Collections.Generic;
 
 public class SceneNotesWindow : EditorWindow
 {
+
+    private void OnEnable()
+    {
+        EditorApplication.hierarchyChanged += Repaint;
+    }
+
+    private void OnDisable()
+    {
+        EditorApplication.hierarchyChanged -= Repaint;
+    }
+
+
     [MenuItem("Tools/DevToolkit Suite/Scene Notes")]
     public static void ShowWindow()
     {
