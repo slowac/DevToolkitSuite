@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.2.0...v1.3.0) (2025-05-16)
+
+
+### Features
+
+* add welcome panel and GitBook documentation integration ([2e4680a](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/commit/2e4680ac0342bb3e049eb7a3e6517c9fa3315004))
+
 # [1.2.0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.1.0...v1.2.0) (2025-05-14)
 
 
