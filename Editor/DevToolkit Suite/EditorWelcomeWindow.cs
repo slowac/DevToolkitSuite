@@ -29,6 +29,14 @@ public class EditorWelcomeWindow : EditorWindow
 
     private void OnEnable()
     {
+        // Do not set up UI before assets are ready, run in next frame
+        EditorApplication.delayCall += InitializeUI;
+    }
+
+    private void InitializeUI()
+    {
+        if (this == null) return; // pencere kapanmışsa
+
         var root = rootVisualElement;
         root.Clear();
 
@@ -46,11 +54,11 @@ public class EditorWelcomeWindow : EditorWindow
             {
                 image = logo,
                 style = {
-                    width = 120,
-                    height = 120,
-                    alignSelf = Align.Center,
-                    marginBottom = 10
-                }
+                width = 120,
+                height = 120,
+                alignSelf = Align.Center,
+                marginBottom = 10
+            }
             };
             root.Add(logoImage);
         }
@@ -77,12 +85,12 @@ public class EditorWelcomeWindow : EditorWindow
         var footer = new Label("Created by OGB CREW")
         {
             style = {
-                unityTextAlign = TextAnchor.MiddleCenter,
-                fontSize = 11,
-                color = new Color(0.6f, 0.6f, 0.6f),
-                marginTop = 6,
-                marginBottom = 8
-            }
+            unityTextAlign = TextAnchor.MiddleCenter,
+            fontSize = 11,
+            color = new Color(0.6f, 0.6f, 0.6f),
+            marginTop = 6,
+            marginBottom = 8
+        }
         };
         root.Add(footer);
 
