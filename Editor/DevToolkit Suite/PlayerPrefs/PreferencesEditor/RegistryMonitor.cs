@@ -7,7 +7,7 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
-namespace EPU.PlayerPrefsEditor
+namespace DevToolkit_Suite.PlayerPrefsEditor
 {
     /// <summary>
     /// Belirtilen kayıt defteri anahtarını izleyen sınıf.

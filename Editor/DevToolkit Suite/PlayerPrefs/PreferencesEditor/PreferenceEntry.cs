@@ -1,33 +1,33 @@
-﻿namespace EPU.PlayerPrefsEditor
+﻿namespace DevToolkit_Suite.PlayerPrefsEditor
 {
     [System.Serializable]
     public class PreferenceEntry
     {
-        public enum PrefTypes
+        public enum PlayerPrefTypes
         {
             String = 0,
             Int = 1,
             Float = 2
         }
 
-        public PrefTypes m_typeSelection;
-        public string m_key;
+        public PlayerPrefTypes typeSelection;
+        public string key;
 
         // Need diffrend ones for auto type selection of serilizedProerty
-        public string m_strValue;
-        public int m_intValue;
-        public float m_floatValue;
+        public string strValue;
+        public int intValue;
+        public float floatValue;
 
         public string ValueAsString()
         {
-            switch(m_typeSelection)
+            switch(typeSelection)
             {
-                case PrefTypes.String:
-                    return m_strValue;
-                case PrefTypes.Int:
-                    return m_intValue.ToString();
-                case PrefTypes.Float:
-                    return m_floatValue.ToString();
+                case PlayerPrefTypes.String:
+                    return strValue;
+                case PlayerPrefTypes.Int:
+                    return intValue.ToString();
+                case PlayerPrefTypes.Float:
+                    return floatValue.ToString();
                 default:
                     return string.Empty;
             }

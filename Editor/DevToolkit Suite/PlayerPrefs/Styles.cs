@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace EPU.Utils
+namespace DevToolkit_Suite.Utils
 {
     public class Styles
     {

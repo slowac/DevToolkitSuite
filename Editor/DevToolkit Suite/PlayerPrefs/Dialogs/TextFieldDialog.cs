@@ -1,11 +1,11 @@
-﻿using EPU.Extensions;
-using EPU.Utils;
+﻿using DevToolkit_Suite.Extensions;
+using DevToolkit_Suite.Utils;
 using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace EPU.Dialogs
+namespace DevToolkit_Suite.Dialogs
 {
     public class TextFieldDialog : EditorWindow
     {

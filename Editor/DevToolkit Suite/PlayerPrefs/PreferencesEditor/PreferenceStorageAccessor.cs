@@ -14,7 +14,7 @@ using System.Xml;
 using System.Xml.Linq;
 #endif
 
-namespace EPU.PlayerPrefsEditor
+namespace DevToolkit_Suite.PlayerPrefsEditor
 {
     public abstract class PreferanceStorageAccessor
     {

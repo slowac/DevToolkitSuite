@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-namespace EPU.Extensions
+namespace DevToolkit_Suite.Extensions
 {
 
     public static class Extensions

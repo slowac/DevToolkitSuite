@@ -5,12 +5,12 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace EPU.Utils
+namespace DevToolkit_Suite.Utils
 {
     public class ImageManager
     {
         // Keep this ID unique
-        private static readonly string ID = "[PlayerPrefsEditor] com.bgtools.playerprefseditor";
+        private static readonly string ID = "[PlayerPrefsEditor] com.ogbcrew.dst_playerprefseditor";
 
         private static string imageManagerPath;
         private static string GetAssetDir()
@@ -56,7 +56,7 @@ namespace EPU.Utils
             {
                 if (osLinuxIcon == null)
                 {
-                    osLinuxIcon = (Texture2D)AssetDatabase.LoadAssetAtPath(GetAssetDir() + "os_linux_icon.png", typeof(Texture2D));
+                    osLinuxIcon = (Texture2D)AssetDatabase.LoadAssetAtPath(GetAssetDir() + "linux_icon.png", typeof(Texture2D));
                 }
                 return osLinuxIcon;
             }
@@ -69,7 +69,7 @@ namespace EPU.Utils
             {
                 if (osWinIcon == null)
                 {
-                    osWinIcon = (Texture2D)AssetDatabase.LoadAssetAtPath(GetAssetDir() + "os_win_icon.png", typeof(Texture2D));
+                    osWinIcon = (Texture2D)AssetDatabase.LoadAssetAtPath(GetAssetDir() + "win_icon.png", typeof(Texture2D));
                 }
                 return osWinIcon;
             }
@@ -82,7 +82,7 @@ namespace EPU.Utils
             {
                 if (osMacIcon == null)
                 {
-                    osMacIcon = (Texture2D)AssetDatabase.LoadAssetAtPath(GetAssetDir() + "os_mac_icon.png", typeof(Texture2D));
+                    osMacIcon = (Texture2D)AssetDatabase.LoadAssetAtPath(GetAssetDir() + "mac_icon.png", typeof(Texture2D));
                 }
                 return osMacIcon;
             }
@@ -136,7 +136,7 @@ namespace EPU.Utils
             {
                 if(exclamation == null)
                 {
-                    exclamation = (Texture2D)AssetDatabase.LoadAssetAtPath(GetAssetDir() + "exclamation.png", typeof(Texture2D));
+                    exclamation = (Texture2D)AssetDatabase.LoadAssetAtPath(GetAssetDir() + "attention.png", typeof(Texture2D));
                 }
                 return exclamation;
             }

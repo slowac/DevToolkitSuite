@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace EPU.Dialogs
+namespace DevToolkit_Suite.Dialogs
 {
     public class TextValidator
     {

@@ -6,15 +6,15 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using EPU.Utils;
-using EPU.Dialogs;
+using DevToolkit_Suite.Utils;
+using DevToolkit_Suite.Dialogs;
 
 #if (UNITY_EDITOR_LINUX || UNITY_EDITOR_OSX)
 using System.Text;
 using System.Globalization;
 #endif
 
-namespace EPU.PlayerPrefsEditor
+namespace DevToolkit_Suite.PlayerPrefsEditor
 {
     public class PreferencesEditorWindow : EditorWindow
     {
@@ -181,15 +181,15 @@ namespace EPU.PlayerPrefsEditor
                 SerializedProperty value;
 
                 // Load only necessary type
-                switch ((PreferenceEntry.PrefTypes)type.enumValueIndex)
+                switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
                 {
-                    case PreferenceEntry.PrefTypes.Float:
+                    case PreferenceEntry.PlayerPrefTypes.Float:
                         value = element.FindPropertyRelative("m_floatValue");
                         break;
-                    case PreferenceEntry.PrefTypes.Int:
+                    case PreferenceEntry.PlayerPrefTypes.Int:
                         value = element.FindPropertyRelative("m_intValue");
                         break;
-                    case PreferenceEntry.PrefTypes.String:
+                    case PreferenceEntry.PlayerPrefTypes.String:
                         value = element.FindPropertyRelative("m_strValue");
                         break;
                     default:
@@ -204,17 +204,17 @@ namespace EPU.PlayerPrefsEditor
                 string prefKeyName = key.stringValue;
                 EditorGUI.LabelField(new Rect(rect.x, rect.y, spliterPos - 1, EditorGUIUtility.singleLineHeight), new GUIContent(prefKeyName, prefKeyName));
                 GUI.enabled = false;
-                EditorGUI.EnumPopup(new Rect(rect.x + spliterPos + 1, rect.y, 60, EditorGUIUtility.singleLineHeight), (PreferenceEntry.PrefTypes)type.enumValueIndex);
+                EditorGUI.EnumPopup(new Rect(rect.x + spliterPos + 1, rect.y, 60, EditorGUIUtility.singleLineHeight), (PreferenceEntry.PlayerPrefTypes)type.enumValueIndex);
                 GUI.enabled = !showLoadingIndicatorOverlay;
-                switch ((PreferenceEntry.PrefTypes)type.enumValueIndex)
+                switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
                 {
-                    case PreferenceEntry.PrefTypes.Float:
+                    case PreferenceEntry.PlayerPrefTypes.Float:
                         EditorGUI.DelayedFloatField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
-                    case PreferenceEntry.PrefTypes.Int:
+                    case PreferenceEntry.PlayerPrefTypes.Int:
                         EditorGUI.DelayedIntField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
-                    case PreferenceEntry.PrefTypes.String:
+                    case PreferenceEntry.PlayerPrefTypes.String:
                         EditorGUI.DelayedTextField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
                 }
@@ -222,15 +222,15 @@ namespace EPU.PlayerPrefsEditor
                 {
                     entryAccessor.IgnoreNextChange();
 
-                    switch ((PreferenceEntry.PrefTypes)type.enumValueIndex)
+                    switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
                     {
-                        case PreferenceEntry.PrefTypes.Float:
+                        case PreferenceEntry.PlayerPrefTypes.Float:
                             PlayerPrefs.SetFloat(key.stringValue, value.floatValue);
                             break;
-                        case PreferenceEntry.PrefTypes.Int:
+                        case PreferenceEntry.PlayerPrefTypes.Int:
                             PlayerPrefs.SetInt(key.stringValue, value.intValue);
                             break;
-                        case PreferenceEntry.PrefTypes.String:
+                        case PreferenceEntry.PlayerPrefTypes.String:
                             PlayerPrefs.SetString(key.stringValue, value.stringValue);
                             break;
                     }
@@ -259,7 +259,7 @@ namespace EPU.PlayerPrefsEditor
             userDefList.onAddDropdownCallback = (Rect buttonRect, ReorderableList l) =>
             {
                 var menu = new GenericMenu();
-                foreach (PreferenceEntry.PrefTypes type in Enum.GetValues(typeof(PreferenceEntry.PrefTypes)))
+                foreach (PreferenceEntry.PlayerPrefTypes type in Enum.GetValues(typeof(PreferenceEntry.PlayerPrefTypes)))
                 {
                     menu.AddItem(new GUIContent(type.ToString()), false, () =>
                     {
@@ -269,15 +269,15 @@ namespace EPU.PlayerPrefsEditor
 
                             switch (type)
                             {
-                                case PreferenceEntry.PrefTypes.Float:
+                                case PreferenceEntry.PlayerPrefTypes.Float:
                                     PlayerPrefs.SetFloat(key, 0.0f);
 
                                     break;
-                                case PreferenceEntry.PrefTypes.Int:
+                                case PreferenceEntry.PlayerPrefTypes.Int:
                                     PlayerPrefs.SetInt(key, 0);
 
                                     break;
-                                case PreferenceEntry.PrefTypes.String:
+                                case PreferenceEntry.PlayerPrefTypes.String:
                                     PlayerPrefs.SetString(key, string.Empty);
 
                                     break;
@@ -304,15 +304,15 @@ namespace EPU.PlayerPrefsEditor
                 SerializedProperty value;
 
                 // Load only necessary type
-                switch ((PreferenceEntry.PrefTypes)type.enumValueIndex)
+                switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
                 {
-                    case PreferenceEntry.PrefTypes.Float:
+                    case PreferenceEntry.PlayerPrefTypes.Float:
                         value = element.FindPropertyRelative("m_floatValue");
                         break;
-                    case PreferenceEntry.PrefTypes.Int:
+                    case PreferenceEntry.PlayerPrefTypes.Int:
                         value = element.FindPropertyRelative("m_intValue");
                         break;
-                    case PreferenceEntry.PrefTypes.String:
+                    case PreferenceEntry.PlayerPrefTypes.String:
                         value = element.FindPropertyRelative("m_strValue");
                         break;
                     default:
@@ -326,17 +326,17 @@ namespace EPU.PlayerPrefsEditor
                 GUI.enabled = false;
                 string prefKeyName = key.stringValue;
                 EditorGUI.LabelField(new Rect(rect.x, rect.y, spliterPos - 1, EditorGUIUtility.singleLineHeight), new GUIContent(prefKeyName, prefKeyName));
-                EditorGUI.EnumPopup(new Rect(rect.x + spliterPos + 1, rect.y, 60, EditorGUIUtility.singleLineHeight), (PreferenceEntry.PrefTypes)type.enumValueIndex);
+                EditorGUI.EnumPopup(new Rect(rect.x + spliterPos + 1, rect.y, 60, EditorGUIUtility.singleLineHeight), (PreferenceEntry.PlayerPrefTypes)type.enumValueIndex);
 
-                switch ((PreferenceEntry.PrefTypes)type.enumValueIndex)
+                switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
                 {
-                    case PreferenceEntry.PrefTypes.Float:
+                    case PreferenceEntry.PlayerPrefTypes.Float:
                         EditorGUI.DelayedFloatField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
-                    case PreferenceEntry.PrefTypes.Int:
+                    case PreferenceEntry.PlayerPrefTypes.Int:
                         EditorGUI.DelayedIntField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
-                    case PreferenceEntry.PrefTypes.String:
+                    case PreferenceEntry.PlayerPrefTypes.String:
                         EditorGUI.DelayedTextField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
                 }
@@ -540,14 +540,14 @@ namespace EPU.PlayerPrefsEditor
             foreach (string key in keySource)
             {
                 var entry = new PreferenceEntry();
-                entry.m_key = key;
+                entry.key = key;
 
                 string s = PlayerPrefs.GetString(key, ERROR_VALUE_STR);
 
                 if (s != ERROR_VALUE_STR)
                 {
-                    entry.m_strValue = s;
-                    entry.m_typeSelection = PreferenceEntry.PrefTypes.String;
+                    entry.strValue = s;
+                    entry.typeSelection = PreferenceEntry.PlayerPrefTypes.String;
                     listDest.Add(entry);
                     continue;
                 }
@@ -555,8 +555,8 @@ namespace EPU.PlayerPrefsEditor
                 float f = PlayerPrefs.GetFloat(key, float.NaN);
                 if (!float.IsNaN(f))
                 {
-                    entry.m_floatValue = f;
-                    entry.m_typeSelection = PreferenceEntry.PrefTypes.Float;
+                    entry.floatValue = f;
+                    entry.typeSelection = PreferenceEntry.PlayerPrefTypes.Float;
                     listDest.Add(entry);
                     continue;
                 }
@@ -564,8 +564,8 @@ namespace EPU.PlayerPrefsEditor
                 int i = PlayerPrefs.GetInt(key, ERROR_VALUE_INT);
                 if (i != ERROR_VALUE_INT)
                 {
-                    entry.m_intValue = i;
-                    entry.m_typeSelection = PreferenceEntry.PrefTypes.Int;
+                    entry.intValue = i;
+                    entry.typeSelection = PreferenceEntry.PlayerPrefTypes.Int;
                     listDest.Add(entry);
                     continue;
                 }
@@ -579,10 +579,10 @@ namespace EPU.PlayerPrefsEditor
             switch(sortOrder)
             {
                 case PreferencesEntrySortOrder.Asscending:
-                    listDest.Sort((PreferenceEntry x, PreferenceEntry y) => { return x.m_key.CompareTo(y.m_key); });
+                    listDest.Sort((PreferenceEntry x, PreferenceEntry y) => { return x.key.CompareTo(y.key); });
                     break;
                 case PreferencesEntrySortOrder.Descending:
-                    listDest.Sort((PreferenceEntry x, PreferenceEntry y) => { return y.m_key.CompareTo(x.m_key); });
+                    listDest.Sort((PreferenceEntry x, PreferenceEntry y) => { return y.key.CompareTo(x.key); });
                     break;
             }
         }
