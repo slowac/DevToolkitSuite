@@ -282,7 +282,7 @@ namespace DevToolkit_Suite
 
             var tools = new[]
             {
-                ("📝 PlayerPrefs Editor", "Edit and manage PlayerPrefs with a visual interface", "Tools/DevToolkit Suite/PlayerPrefs Editor", "playerprefs.png"),
+                ("📝 PlayerPrefs Editor", "Edit and manage PlayerPrefs with a visual interface", "Tools/DevToolkit Suite/PlayerPrefs Browser", "playerprefs.png"),
                 ("📷 Scene Camera Bookmarks", "Save and restore camera positions in scene view", "Tools/DevToolkit Suite/Scene Camera Bookmarks", "camera.png"),
                 ("📁 Folder Icon Picker", "Customize project folder icons for better organization", "Tools/DevToolkit Suite/Folder Icon Picker", "folder.png"),
                 ("🧩 ScriptableObject Browser", "Browse and manage ScriptableObjects in your project", "Tools/DevToolkit Suite/ScriptableObject Browser", "scriptable.png"),
