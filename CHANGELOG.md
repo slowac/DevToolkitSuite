@@ -1,3 +1,10 @@
+## [1.4.3](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.4.2...v1.4.3) (2025-05-25)
+
+
+### Bug Fixes
+
+* favorite folder popup bug fix ([d04bded](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/commit/d04bded517e94ce334c15e97c510bda87113b033))
+
 ## [1.4.2](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.4.1...v1.4.2) (2025-05-25)
 
 
