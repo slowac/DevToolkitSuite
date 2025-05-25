@@ -10,6 +10,7 @@ public class SceneCameraBookmarks : EditorWindow
     private string newBookmarkName = "";
     private int renamingIndex = -1;
     private string renamingBuffer = "";
+    private int hotkeyEditingIndex = -1;
 
     private static SceneCameraBookmarks currentInstance;
 
@@ -104,66 +105,36 @@ public class SceneCameraBookmarks : EditorWindow
                 normal = { textColor = new Color(0.7f, 0.9f, 1f) }
             };
             
+            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField($"📍 {bookmark.name}", bookmarkHeaderStyle);
+            GUILayout.FlexibleSpace();
+            
+            // Show hotkey if assigned
+            if (bookmark.hotkey != KeyCode.None)
+            {
+                GUIStyle hotkeyStyle = new GUIStyle(EditorStyles.miniLabel)
+                {
+                    normal = { textColor = new Color(1f, 0.8f, 0.2f) },
+                    fontStyle = FontStyle.Bold
+                };
+                EditorGUILayout.LabelField($"[{bookmark.hotkey}]", hotkeyStyle, GUILayout.Width(60));
+            }
+            EditorGUILayout.EndHorizontal();
             EditorGUILayout.Space(5);
 
-            // Action buttons row
-            EditorGUILayout.BeginHorizontal();
-
-            // Go To button
-            if (GradientButton("🎯 Go To", gradientTex, gradientButtonStyle, GUILayout.Width(80)))
+            // Responsive action buttons layout
+            bool useVerticalLayout = position.width < 600; // Switch to vertical layout if window is narrow
+            
+            if (useVerticalLayout)
             {
-                SceneView.lastActiveSceneView.LookAt(bookmark.position, bookmark.rotation);
-            }
-
-            // Rename functionality
-            if (renamingIndex == i)
-            {
-                renamingBuffer = EditorGUILayout.TextField(renamingBuffer, GUILayout.Height(22));
-
-                if (GradientButton("💾 Save", gradientTex, gradientButtonStyle, GUILayout.Width(70)))
-                {
-                    bookmark.name = renamingBuffer;
-                    renamingIndex = -1;
-                    SceneCameraBookmarksOverlay.Refresh(); // sync overlay
-                }
-
-                if (GradientButton("❌ Cancel", gradientTex, gradientButtonStyle, GUILayout.Width(80)))
-                {
-                    renamingIndex = -1;
-                }
+                // Vertical layout for narrow windows
+                DrawBookmarkActionsVertical(bookmark, i);
             }
             else
             {
-                if (GradientButton("✏️ Rename", gradientTex, gradientButtonStyle, GUILayout.Width(90)))
-                {
-                    renamingIndex = i;
-                    renamingBuffer = bookmark.name;
-                }
+                // Horizontal layout for wide windows
+                DrawBookmarkActionsHorizontal(bookmark, i);
             }
-
-            GUILayout.FlexibleSpace();
-
-            // Delete button
-            GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
-            if (GUILayout.Button("🗑️ Delete", GUILayout.Height(24), GUILayout.Width(80)))
-            {
-                if (EditorUtility.DisplayDialog("Delete Bookmark", 
-                    $"Are you sure you want to delete bookmark '{bookmark.name}'?", 
-                    "Delete", "Cancel"))
-                {
-                    bookmarks.RemoveAt(i);
-                    i--;
-                    SceneCameraBookmarksOverlay.Refresh(); // sync overlay
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.EndVertical();
-                    GUI.backgroundColor = Color.white;
-                    continue;
-                }
-            }
-            GUI.backgroundColor = Color.white;
-
-            EditorGUILayout.EndHorizontal();
             EditorGUILayout.EndVertical();
 
             if (i < bookmarks.Count - 1)
@@ -172,12 +143,31 @@ public class SceneCameraBookmarks : EditorWindow
 
         EditorGUILayout.EndVertical(); // End bookmarks list section
 
-        // Show bookmark count
+        // Show bookmark count and hotkey info
         if (bookmarks.Count > 0)
         {
             EditorGUILayout.Space(5);
             EditorGUILayout.BeginVertical(modernBoxStyle);
             EditorGUILayout.LabelField($"📊 Total Bookmarks: {bookmarks.Count}", EditorStyles.miniLabel);
+            
+            // Count hotkeys assigned
+            int hotkeyCount = 0;
+            foreach (var bookmark in bookmarks)
+            {
+                if (bookmark.hotkey != KeyCode.None) hotkeyCount++;
+            }
+            
+            if (hotkeyCount > 0)
+            {
+                EditorGUILayout.LabelField($"⌨️ Hotkeys Assigned: {hotkeyCount}", EditorStyles.miniLabel);
+                EditorGUILayout.Space(3);
+                EditorGUILayout.LabelField("💡 Press assigned hotkeys in Scene View to navigate quickly!", EditorStyles.miniLabel);
+            }
+            else
+            {
+                EditorGUILayout.LabelField("💡 Assign hotkeys to bookmarks for instant navigation!", EditorStyles.miniLabel);
+            }
+            
             EditorGUILayout.EndVertical();
         }
 
@@ -328,6 +318,220 @@ public class SceneCameraBookmarks : EditorWindow
         tex.SetPixel(0, 0, color);
         tex.Apply();
         return tex;
+    }
+
+    private void DrawBookmarkActionsHorizontal(CameraBookmark bookmark, int i)
+    {
+        EditorGUILayout.BeginHorizontal();
+
+        // Go To button
+        if (GradientButton("🎯 Go To", gradientTex, gradientButtonStyle, GUILayout.Width(80)))
+        {
+            SceneView.lastActiveSceneView.LookAt(bookmark.position, bookmark.rotation);
+        }
+
+        // Handle different states
+        if (renamingIndex == i)
+        {
+            renamingBuffer = EditorGUILayout.TextField(renamingBuffer, GUILayout.Height(22));
+
+            if (GradientButton("💾 Save", gradientTex, gradientButtonStyle, GUILayout.Width(70)))
+            {
+                bookmark.name = renamingBuffer;
+                renamingIndex = -1;
+                SceneCameraBookmarksOverlay.Refresh();
+            }
+
+            if (GradientButton("❌ Cancel", gradientTex, gradientButtonStyle, GUILayout.Width(80)))
+            {
+                renamingIndex = -1;
+            }
+        }
+        else if (hotkeyEditingIndex == i)
+        {
+            EditorGUILayout.LabelField("Hotkey:", GUILayout.Width(50));
+            
+            KeyCode newHotkey = (KeyCode)EditorGUILayout.EnumPopup(bookmark.hotkey, GUILayout.Width(100));
+            
+            if (newHotkey != bookmark.hotkey)
+            {
+                ProcessHotkeyChange(bookmark, newHotkey);
+            }
+
+            if (GradientButton("✅ Done", gradientTex, gradientButtonStyle, GUILayout.Width(60)))
+            {
+                hotkeyEditingIndex = -1;
+            }
+        }
+        else
+        {
+            if (GradientButton("✏️ Rename", gradientTex, gradientButtonStyle, GUILayout.Width(90)))
+            {
+                renamingIndex = i;
+                renamingBuffer = bookmark.name;
+            }
+
+            string hotkeyButtonText = bookmark.hotkey != KeyCode.None ? $"🔑 {bookmark.hotkey}" : "🔑 Set Key";
+            if (GradientButton(hotkeyButtonText, gradientTex, gradientButtonStyle, GUILayout.Width(100)))
+            {
+                hotkeyEditingIndex = i;
+            }
+
+            if (bookmark.hotkey != KeyCode.None)
+            {
+                if (GradientButton("🚫 Clear", gradientTex, gradientButtonStyle, GUILayout.Width(70)))
+                {
+                    bookmark.hotkey = KeyCode.None;
+                    SceneCameraBookmarksOverlay.Refresh();
+                }
+            }
+        }
+
+        GUILayout.FlexibleSpace();
+
+        // Delete button
+        GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
+        if (GUILayout.Button("🗑️ Delete", GUILayout.Height(24), GUILayout.Width(80)))
+        {
+            if (EditorUtility.DisplayDialog("Delete Bookmark", 
+                $"Are you sure you want to delete bookmark '{bookmark.name}'?", 
+                "Delete", "Cancel"))
+            {
+                bookmarks.RemoveAt(i);
+                SceneCameraBookmarksOverlay.Refresh();
+                GUI.backgroundColor = Color.white;
+                EditorGUILayout.EndHorizontal();
+                return;
+            }
+        }
+        GUI.backgroundColor = Color.white;
+
+        EditorGUILayout.EndHorizontal();
+    }
+
+    private void DrawBookmarkActionsVertical(CameraBookmark bookmark, int i)
+    {
+        // First row: Navigation and primary actions
+        EditorGUILayout.BeginHorizontal();
+        
+        if (GradientButton("🎯 Go To", gradientTex, gradientButtonStyle, GUILayout.ExpandWidth(true)))
+        {
+            SceneView.lastActiveSceneView.LookAt(bookmark.position, bookmark.rotation);
+        }
+        
+        // Delete button (always visible in vertical layout)
+        GUI.backgroundColor = new Color(0.8f, 0.3f, 0.3f);
+        if (GUILayout.Button("🗑️ Delete", GUILayout.Height(24), GUILayout.Width(80)))
+        {
+            if (EditorUtility.DisplayDialog("Delete Bookmark", 
+                $"Are you sure you want to delete bookmark '{bookmark.name}'?", 
+                "Delete", "Cancel"))
+            {
+                bookmarks.RemoveAt(i);
+                SceneCameraBookmarksOverlay.Refresh();
+                GUI.backgroundColor = Color.white;
+                EditorGUILayout.EndHorizontal();
+                return;
+            }
+        }
+        GUI.backgroundColor = Color.white;
+        
+        EditorGUILayout.EndHorizontal();
+
+        // Second row: Edit functions
+        if (renamingIndex == i)
+        {
+            EditorGUILayout.BeginHorizontal();
+            renamingBuffer = EditorGUILayout.TextField(renamingBuffer, GUILayout.Height(22));
+            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.BeginHorizontal();
+            if (GradientButton("💾 Save", gradientTex, gradientButtonStyle, GUILayout.ExpandWidth(true)))
+            {
+                bookmark.name = renamingBuffer;
+                renamingIndex = -1;
+                SceneCameraBookmarksOverlay.Refresh();
+            }
+            if (GradientButton("❌ Cancel", gradientTex, gradientButtonStyle, GUILayout.ExpandWidth(true)))
+            {
+                renamingIndex = -1;
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+        else if (hotkeyEditingIndex == i)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Select Hotkey:", GUILayout.Width(90));
+            KeyCode newHotkey = (KeyCode)EditorGUILayout.EnumPopup(bookmark.hotkey);
+            EditorGUILayout.EndHorizontal();
+            
+            if (newHotkey != bookmark.hotkey)
+            {
+                ProcessHotkeyChange(bookmark, newHotkey);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            if (GradientButton("✅ Done", gradientTex, gradientButtonStyle, GUILayout.ExpandWidth(true)))
+            {
+                hotkeyEditingIndex = -1;
+            }
+            EditorGUILayout.EndHorizontal();
+        }
+        else
+        {
+            EditorGUILayout.BeginHorizontal();
+            if (GradientButton("✏️ Rename", gradientTex, gradientButtonStyle, GUILayout.ExpandWidth(true)))
+            {
+                renamingIndex = i;
+                renamingBuffer = bookmark.name;
+            }
+
+            string hotkeyButtonText = bookmark.hotkey != KeyCode.None ? $"🔑 {bookmark.hotkey}" : "🔑 Set Key";
+            if (GradientButton(hotkeyButtonText, gradientTex, gradientButtonStyle, GUILayout.ExpandWidth(true)))
+            {
+                hotkeyEditingIndex = i;
+            }
+            EditorGUILayout.EndHorizontal();
+
+            if (bookmark.hotkey != KeyCode.None)
+            {
+                EditorGUILayout.BeginHorizontal();
+                if (GradientButton("🚫 Clear Hotkey", gradientTex, gradientButtonStyle, GUILayout.ExpandWidth(true)))
+                {
+                    bookmark.hotkey = KeyCode.None;
+                    SceneCameraBookmarksOverlay.Refresh();
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+    }
+
+    private void ProcessHotkeyChange(CameraBookmark bookmark, KeyCode newHotkey)
+    {
+        bool isAlreadyAssigned = false;
+        if (newHotkey != KeyCode.None)
+        {
+            foreach (var otherBookmark in bookmarks)
+            {
+                if (otherBookmark != bookmark && otherBookmark.hotkey == newHotkey)
+                {
+                    isAlreadyAssigned = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!isAlreadyAssigned)
+        {
+            bookmark.hotkey = newHotkey;
+            hotkeyEditingIndex = -1;
+            SceneCameraBookmarksOverlay.Refresh();
+        }
+        else
+        {
+            EditorUtility.DisplayDialog("Hotkey Conflict", 
+                $"The key '{newHotkey}' is already assigned to another bookmark.", "OK");
+        }
     }
 
     private void AddCurrentView()

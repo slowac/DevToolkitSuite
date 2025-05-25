@@ -52,7 +52,6 @@ namespace DevToolkit_Suite
 
         private void OnEnable()
         {
-            InitStyles();
             if (gradientTex == null)
                 gradientTex = CreateHorizontalGradient(256, 32, new Color(0f, 0.686f, 0.972f), new Color(0.008f, 0.925f, 0.643f));
         }
@@ -214,6 +213,46 @@ namespace DevToolkit_Suite
         {
             var style = isActive ? tabActiveButtonStyle : tabButtonStyle;
             return GUILayout.Button(text, style, GUILayout.Height(32));
+        }
+
+        private bool DrawFeedbackButton(string text, string url, string iconFile)
+        {
+            EditorGUILayout.BeginVertical(cardBoxStyle);
+            
+            EditorGUILayout.BeginHorizontal();
+            
+            // Button icon
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>($"Packages/com.ogbcrew.devtoolkitsuite/Icons/{iconFile}");
+            if (icon != null)
+            {
+                GUILayout.Label(icon, GUILayout.Width(24), GUILayout.Height(24));
+                GUILayout.Space(12);
+            }
+            
+            // Button text with proper styling
+            EditorGUILayout.LabelField(text, new GUIStyle(EditorStyles.boldLabel)
+            {
+                fontSize = 13,
+                normal = { textColor = new Color(0.9f, 0.9f, 0.9f) },
+                fontStyle = FontStyle.Bold
+            });
+            
+            GUILayout.FlexibleSpace();
+            
+            // Action button
+            bool clicked = GUILayout.Button("→", new GUIStyle(GUI.skin.button)
+            {
+                fontSize = 14,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = new Color(0.7f, 0.9f, 1f) },
+                fixedWidth = 32,
+                fixedHeight = 24
+            });
+            
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.EndVertical();
+            
+            return clicked;
         }
 
         private void DrawOverviewTab()
@@ -421,9 +460,7 @@ namespace DevToolkit_Suite
             // Feedback Options
             EditorGUILayout.BeginVertical(modernBoxStyle);
             EditorGUILayout.LabelField("📮 Get in Touch", sectionLabelStyle);
-            EditorGUILayout.Space(5);
-
-            bool isNarrow = position.width < 500;
+            EditorGUILayout.Space(8);
 
             var feedbackOptions = new[]
             {
@@ -434,42 +471,14 @@ namespace DevToolkit_Suite
                 ("💬 Join Our Community", "https://discord.gg/ogbcrew", "github.png")
             };
 
-            if (isNarrow)
+            // Use a clean card-based layout for all buttons
+            foreach (var (text, url, iconFile) in feedbackOptions)
             {
-                // Stack buttons vertically
-                foreach (var (text, url, icon) in feedbackOptions)
+                if (DrawFeedbackButton(text, url, iconFile))
                 {
-                    if (IconButton(text, icon, gradientTex, gradientButtonStyle, GUILayout.Height(30)))
-                    {
-                        Application.OpenURL(url);
-                    }
-                    EditorGUILayout.Space(3);
+                    Application.OpenURL(url);
                 }
-            }
-            else
-            {
-                // Two-column layout
-                for (int i = 0; i < feedbackOptions.Length; i += 2)
-                {
-                    EditorGUILayout.BeginHorizontal();
-                    
-                    if (IconButton(feedbackOptions[i].Item1, feedbackOptions[i].Item3, gradientTex, gradientButtonStyle, GUILayout.Height(32)))
-                    {
-                        Application.OpenURL(feedbackOptions[i].Item2);
-                    }
-                    
-                    if (i + 1 < feedbackOptions.Length)
-                    {
-                        GUILayout.Space(10);
-                        if (IconButton(feedbackOptions[i + 1].Item1, feedbackOptions[i + 1].Item3, gradientTex, gradientButtonStyle, GUILayout.Height(32)))
-                        {
-                            Application.OpenURL(feedbackOptions[i + 1].Item2);
-                        }
-                    }
-                    
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.Space(5);
-                }
+                EditorGUILayout.Space(4);
             }
 
             EditorGUILayout.EndVertical();
