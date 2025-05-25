@@ -56,6 +56,13 @@ DevToolkit Suite is a comprehensive and modular Unity Editor extension designed 
 - Fully synchronized between the overlay panel and the editor window
 - Ideal for level design, debugging, or returning to complex scene areas with precision
 
+### 🎵 AudioClip Processing Tools
+- Edit and process AudioClips with waveform visualization and batch operations
+- Use the Waveform Editor for real-time trimming, fading, normalization, and volume adjustment
+- Batch process multiple clips at once for silence trimming, volume tweaks, or normalization
+- Export edited clips directly as WAV files with a single click
+- Perfect for preparing consistent and clean audio assets for your game projects
+
 
 #  ✨ Installation
 
