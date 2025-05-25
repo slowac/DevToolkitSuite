@@ -636,9 +636,8 @@ namespace DevToolkit_Suite
                 paths.Add(folderPath);
                 EditorPrefs.SetString("EPU_FavoriteFolders", string.Join("|", paths));
 
-                var window = GetWindow<FavoriteFoldersWindow>();
-                if (window != null)
-                    window.LoadFavorites();
+                // Silently refresh any open windows without affecting focus or bringing them forward
+                RefreshOpenWindows();
             }
         }
 
@@ -650,9 +649,21 @@ namespace DevToolkit_Suite
                 paths.Remove(folderPath);
                 EditorPrefs.SetString("EPU_FavoriteFolders", string.Join("|", paths));
 
-                var window = GetWindow<FavoriteFoldersWindow>();
+                // Silently refresh any open windows without affecting focus or bringing them forward
+                RefreshOpenWindows();
+            }
+        }
+
+        private static void RefreshOpenWindows()
+        {
+            // Find all open instances of FavoriteFoldersWindow without affecting focus
+            var openWindows = Resources.FindObjectsOfTypeAll<FavoriteFoldersWindow>();
+            foreach (var window in openWindows)
+            {
                 if (window != null)
+                {
                     window.LoadFavorites();
+                }
             }
         }
 
