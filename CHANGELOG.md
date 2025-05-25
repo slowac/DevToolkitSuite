@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.3.0...v1.4.0) (2025-05-25)
+
+
+### Features
+
+* Add comprehensive audio editing toolkit for Unity ([f973c5e](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/commit/f973c5ecbe1711752d325e76d818a37c4ea2a5fe))
+
 # [1.3.0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.2.0...v1.3.0) (2025-05-16)
 
 
