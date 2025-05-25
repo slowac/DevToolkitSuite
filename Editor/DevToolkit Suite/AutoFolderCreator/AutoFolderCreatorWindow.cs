@@ -13,6 +13,12 @@ namespace DevToolkit_Suite
         private GUIStyle labelStyle;
         private GUIStyle boxStyle;
 
+        private void OnEnable()
+        {
+            LoadIcons();
+            InitStyles();
+        }
+
         [MenuItem("Tools/DevToolkit Suite/Auto Folder Creator",false,23)]
         public static void ShowWindow()
         {
@@ -62,9 +68,6 @@ namespace DevToolkit_Suite
 
         private void OnGUI()
         {
-            if (folderIcons == null) LoadIcons();
-            InitStyles();
-
             GUILayout.Space(10);
             GUILayout.Label("📁 Select Folders to Create", EditorStyles.boldLabel);
             GUILayout.Space(10);

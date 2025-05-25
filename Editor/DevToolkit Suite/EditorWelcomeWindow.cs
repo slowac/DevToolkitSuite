@@ -21,10 +21,19 @@ namespace DevToolkit_Suite
         [InitializeOnLoadMethod]
         private static void AutoShow()
         {
-            if (!SessionState.GetBool(SessionKey, false))
+            const string prefsKey = "DevToolkitSuite_WelcomeWindow_Shown";
+
+            // Eğer daha önce gösterilmediyse, delayCall ile aç
+            if (!EditorPrefs.GetBool(prefsKey, false))
             {
-                ShowWindow();
-                SessionState.SetBool(SessionKey, true);
+                EditorApplication.delayCall += () =>
+                {
+                    if (!EditorPrefs.GetBool(prefsKey, false))
+                    {
+                        EditorWelcomeWindow.ShowWindow();
+                        EditorPrefs.SetBool(prefsKey, true);
+                    }
+                };
             }
         }
 

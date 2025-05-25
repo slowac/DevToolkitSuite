@@ -6,15 +6,17 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
-using DevToolkit_Suite.Utils;
-using DevToolkit_Suite.Dialogs;
+using DevToolkitSuite.PreferenceEditor.Core;
+using DevToolkitSuite.PreferenceEditor.Dialogs;
+using DevToolkitSuite.PreferenceEditor.UI;
+using DevToolkitSuite.PreferenceEditor.UI.Extensions;
 
 #if (UNITY_EDITOR_LINUX || UNITY_EDITOR_OSX)
 using System.Text;
 using System.Globalization;
 #endif
 
-namespace DevToolkit_Suite.PlayerPrefsEditor
+namespace DevToolkitSuite.PreferenceEditor
 {
     public class PreferencesEditorWindow : EditorWindow
     {
@@ -45,13 +47,13 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 
         private SerializedProperty[] userDefListCache = new SerializedProperty[0];
 
-        private PreferenceEntryHolder prefEntryHolder;
+        private PreferenceDataContainer prefEntryHolder;
 
         private Vector2 scrollPos;
         private float relSpliterPos;
         private bool moveSplitterPos = false;
 
-        private PreferanceStorageAccessor entryAccessor;
+        private PreferenceStorageAccessor entryAccessor;
 
         private MySearchField searchfield;
         private string searchTxt;
@@ -61,10 +63,10 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
         private bool monitoring = false;
         private bool showLoadingIndicatorOverlay = false;
 
-        private readonly List<TextValidator> prefKeyValidatorList = new List<TextValidator>()
+        private readonly List<InputValidator> prefKeyValidatorList = new List<InputValidator>()
         {
-            new TextValidator(TextValidator.ErrorType.Error, @"Invalid character detected. Only letters, numbers, space and ,.;:<>_|!§$%&/()=?*+~#-]+$ are allowed", @"(^$)|(^[a-zA-Z0-9 ,.;:<>_|!§$%&/()=?*+~#-]+$)"),
-            new TextValidator(TextValidator.ErrorType.Warning, @"The given key already exist. The existing entry would be overwritten!", (key) => { return !PlayerPrefs.HasKey(key); })
+            new InputValidator(InputValidator.ErrorType.Error, @"Invalid character detected. Only letters, numbers, space and ,.;:<>_|!§$%&/()=?*+~#-]+$ are allowed", @"(^$)|(^[a-zA-Z0-9 ,.;:<>_|!§$%&/()=?*+~#-]+$)"),
+            new InputValidator(InputValidator.ErrorType.Warning, @"The given key already exist. The existing entry would be overwritten!", (key) => { return !PlayerPrefs.HasKey(key); })
         };
 
 #if UNITY_EDITOR_LINUX
@@ -72,12 +74,12 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 #elif UNITY_EDITOR_OSX
         private readonly char[] invalidFilenameChars = { '$', '%', '&', '\\', '/', ':', '<', '>', '|', '~' };
 #endif
-        [MenuItem("Tools/DevToolkit Suite/PlayerPrefs Editor", false, 11)]
+        [MenuItem("Tools/DevToolkit Suite/PlayerPrefs Browser", false, 11)]
         static void ShowWindow()
         {
-            PreferencesEditorWindow window = EditorWindow.GetWindow<PreferencesEditorWindow>(false, "PlayerPrefs Editor");
+            PreferencesEditorWindow window = EditorWindow.GetWindow<PreferencesEditorWindow>(false, "Preference Editor");
             window.minSize = new Vector2(270.0f, 300.0f);
-            window.name = "PlayerPrefs Editor";
+            window.name = "Preference Editor";
 
             //window.titleContent = EditorGUIUtility.IconContent("SettingsIcon"); // Icon
 
@@ -89,21 +91,21 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 #if UNITY_EDITOR_WIN
             pathToPrefs = @"SOFTWARE\Unity\UnityEditor\" + PlayerSettings.companyName + @"\" + PlayerSettings.productName;
             platformPathPrefix = @"<CurrentUser>";
-            entryAccessor = new WindowsPrefStorage(pathToPrefs);
+            entryAccessor = new WindowsPreferenceStorage(pathToPrefs);
 #elif UNITY_EDITOR_OSX
             pathToPrefs = @"Library/Preferences/unity." + MakeValidFileName(PlayerSettings.companyName) + "." + MakeValidFileName(PlayerSettings.productName) + ".plist";
-            entryAccessor = new MacPrefStorage(pathToPrefs);
-            entryAccessor.StartLoadingDelegate = () => { showLoadingIndicatorOverlay = true; };
-            entryAccessor.StopLoadingDelegate = () => { showLoadingIndicatorOverlay = false; };
+            entryAccessor = new MacOSPreferenceStorage(pathToPrefs);
+            entryAccessor.LoadingStartedDelegate = () => { showLoadingIndicatorOverlay = true; };
+            entryAccessor.LoadingCompletedDelegate = () => { showLoadingIndicatorOverlay = false; };
 #elif UNITY_EDITOR_LINUX
             pathToPrefs = @".config/unity3d/" + MakeValidFileName(PlayerSettings.companyName) + "/" + MakeValidFileName(PlayerSettings.productName) + "/prefs";
-            entryAccessor = new LinuxPrefStorage(pathToPrefs);
+            entryAccessor = new LinuxPreferenceStorage(pathToPrefs);
 #endif
-            entryAccessor.PrefEntryChangedDelegate = () => { updateView = true; };
+            entryAccessor.PreferenceChangedDelegate = () => { updateView = true; };
 
             monitoring = EditorPrefs.GetBool("BGTools.PlayerPrefsEditor.WatchingForChanges", true);
             if(monitoring)
-                entryAccessor.StartMonitoring();
+                entryAccessor.BeginMonitoring();
 
             sortOrder = (PreferencesEntrySortOrder) EditorPrefs.GetInt("BGTools.PlayerPrefsEditor.SortOrder", 0);
             searchfield = new MySearchField();
@@ -138,21 +140,21 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 
         private void OnDisable()
         {
-            entryAccessor.StopMonitoring();
+            entryAccessor.EndMonitoring();
         }
 
         private void InitReorderedList()
         {
             if (prefEntryHolder == null)
             {
-                var tmp = Resources.FindObjectsOfTypeAll<PreferenceEntryHolder>();
+                var tmp = Resources.FindObjectsOfTypeAll<PreferenceDataContainer>();
                 if (tmp.Length > 0)
                 {
                     prefEntryHolder = tmp[0];
                 }
                 else
                 {
-                    prefEntryHolder = ScriptableObject.CreateInstance<PreferenceEntryHolder>();
+                    prefEntryHolder = ScriptableObject.CreateInstance<PreferenceDataContainer>();
                 }
             }
 
@@ -161,8 +163,8 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 serializedObject = new SerializedObject(prefEntryHolder);
             }
 
-            userDefList = new ReorderableList(serializedObject, serializedObject.FindProperty("userDefList"), false, true, true, true);
-            unityDefList = new ReorderableList(serializedObject, serializedObject.FindProperty("unityDefList"), false, true, false, false);
+            userDefList = new ReorderableList(serializedObject, serializedObject.FindProperty("userDefinedEntries"), false, true, true, true);
+            unityDefList = new ReorderableList(serializedObject, serializedObject.FindProperty("systemDefinedEntries"), false, true, false, false);
 
             relSpliterPos = EditorPrefs.GetFloat("BGTools.PlayerPrefsEditor.RelativeSpliterPosition", 100 / position.width);
 
@@ -175,22 +177,22 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
             {
                 SerializedProperty element = GetUserDefListElementAtIndex(index, userDefList.serializedProperty);
 
-                SerializedProperty key = element.FindPropertyRelative("m_key");
-                SerializedProperty type = element.FindPropertyRelative("m_typeSelection");
+                SerializedProperty key = element.FindPropertyRelative("key");
+                SerializedProperty type = element.FindPropertyRelative("typeSelection");
 
                 SerializedProperty value;
 
                 // Load only necessary type
-                switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
+                switch ((PreferenceEntryData.PreferenceDataType)type.enumValueIndex)
                 {
-                    case PreferenceEntry.PlayerPrefTypes.Float:
-                        value = element.FindPropertyRelative("m_floatValue");
+                    case PreferenceEntryData.PreferenceDataType.Float:
+                        value = element.FindPropertyRelative("floatValue");
                         break;
-                    case PreferenceEntry.PlayerPrefTypes.Int:
-                        value = element.FindPropertyRelative("m_intValue");
+                    case PreferenceEntryData.PreferenceDataType.Integer:
+                        value = element.FindPropertyRelative("intValue");
                         break;
-                    case PreferenceEntry.PlayerPrefTypes.String:
-                        value = element.FindPropertyRelative("m_strValue");
+                    case PreferenceEntryData.PreferenceDataType.String:
+                        value = element.FindPropertyRelative("strValue");
                         break;
                     default:
                         value = element.FindPropertyRelative("This should never happen");
@@ -204,33 +206,33 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 string prefKeyName = key.stringValue;
                 EditorGUI.LabelField(new Rect(rect.x, rect.y, spliterPos - 1, EditorGUIUtility.singleLineHeight), new GUIContent(prefKeyName, prefKeyName));
                 GUI.enabled = false;
-                EditorGUI.EnumPopup(new Rect(rect.x + spliterPos + 1, rect.y, 60, EditorGUIUtility.singleLineHeight), (PreferenceEntry.PlayerPrefTypes)type.enumValueIndex);
+                EditorGUI.EnumPopup(new Rect(rect.x + spliterPos + 1, rect.y, 60, EditorGUIUtility.singleLineHeight), (PreferenceEntryData.PreferenceDataType)type.enumValueIndex);
                 GUI.enabled = !showLoadingIndicatorOverlay;
-                switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
+                switch ((PreferenceEntryData.PreferenceDataType)type.enumValueIndex)
                 {
-                    case PreferenceEntry.PlayerPrefTypes.Float:
+                    case PreferenceEntryData.PreferenceDataType.Float:
                         EditorGUI.DelayedFloatField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
-                    case PreferenceEntry.PlayerPrefTypes.Int:
+                    case PreferenceEntryData.PreferenceDataType.Integer:
                         EditorGUI.DelayedIntField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
-                    case PreferenceEntry.PlayerPrefTypes.String:
+                    case PreferenceEntryData.PreferenceDataType.String:
                         EditorGUI.DelayedTextField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
-                    entryAccessor.IgnoreNextChange();
+                    entryAccessor.IgnoreNextChangeNotification();
 
-                    switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
+                    switch ((PreferenceEntryData.PreferenceDataType)type.enumValueIndex)
                     {
-                        case PreferenceEntry.PlayerPrefTypes.Float:
+                        case PreferenceEntryData.PreferenceDataType.Float:
                             PlayerPrefs.SetFloat(key.stringValue, value.floatValue);
                             break;
-                        case PreferenceEntry.PlayerPrefTypes.Int:
+                        case PreferenceEntryData.PreferenceDataType.Integer:
                             PlayerPrefs.SetInt(key.stringValue, value.intValue);
                             break;
-                        case PreferenceEntry.PlayerPrefTypes.String:
+                        case PreferenceEntryData.PreferenceDataType.String:
                             PlayerPrefs.SetString(key.stringValue, value.stringValue);
                             break;
                     }
@@ -243,10 +245,10 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 userDefList.ReleaseKeyboardFocus();
                 unityDefList.ReleaseKeyboardFocus();
 
-                string prefKey = l.serializedProperty.GetArrayElementAtIndex(l.index).FindPropertyRelative("m_key").stringValue;
+                string prefKey = l.serializedProperty.GetArrayElementAtIndex(l.index).FindPropertyRelative("key").stringValue;
                 if (EditorUtility.DisplayDialog("Warning!", $"Are you sure you want to delete this entry from PlayerPrefs?\n\nEntry: {prefKey}", "Yes", "No"))
                 {
-                    entryAccessor.IgnoreNextChange();
+                    entryAccessor.IgnoreNextChangeNotification();
 
                     PlayerPrefs.DeleteKey(prefKey);
                     PlayerPrefs.Save();
@@ -259,25 +261,25 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
             userDefList.onAddDropdownCallback = (Rect buttonRect, ReorderableList l) =>
             {
                 var menu = new GenericMenu();
-                foreach (PreferenceEntry.PlayerPrefTypes type in Enum.GetValues(typeof(PreferenceEntry.PlayerPrefTypes)))
+                foreach (PreferenceEntryData.PreferenceDataType type in Enum.GetValues(typeof(PreferenceEntryData.PreferenceDataType)))
                 {
                     menu.AddItem(new GUIContent(type.ToString()), false, () =>
                     {
-                        TextFieldDialog.OpenDialog("Create new property", "Key for the new property:", prefKeyValidatorList, (key) => {
+                        TextInputDialog.ShowInputDialog("Create new property", "Key for the new property:", prefKeyValidatorList, (key) => {
 
-                            entryAccessor.IgnoreNextChange();
+                            entryAccessor.IgnoreNextChangeNotification();
 
                             switch (type)
                             {
-                                case PreferenceEntry.PlayerPrefTypes.Float:
+                                case PreferenceEntryData.PreferenceDataType.Float:
                                     PlayerPrefs.SetFloat(key, 0.0f);
 
                                     break;
-                                case PreferenceEntry.PlayerPrefTypes.Int:
+                                case PreferenceEntryData.PreferenceDataType.Integer:
                                     PlayerPrefs.SetInt(key, 0);
 
                                     break;
-                                case PreferenceEntry.PlayerPrefTypes.String:
+                                case PreferenceEntryData.PreferenceDataType.String:
                                     PlayerPrefs.SetString(key, string.Empty);
 
                                     break;
@@ -298,22 +300,22 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
             unityDefList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 var element = unityDefList.serializedProperty.GetArrayElementAtIndex(index);
-                SerializedProperty key = element.FindPropertyRelative("m_key");
-                SerializedProperty type = element.FindPropertyRelative("m_typeSelection");
+                SerializedProperty key = element.FindPropertyRelative("key");
+                SerializedProperty type = element.FindPropertyRelative("typeSelection");
 
                 SerializedProperty value;
 
                 // Load only necessary type
-                switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
+                switch ((PreferenceEntryData.PreferenceDataType)type.enumValueIndex)
                 {
-                    case PreferenceEntry.PlayerPrefTypes.Float:
-                        value = element.FindPropertyRelative("m_floatValue");
+                    case PreferenceEntryData.PreferenceDataType.Float:
+                        value = element.FindPropertyRelative("floatValue");
                         break;
-                    case PreferenceEntry.PlayerPrefTypes.Int:
-                        value = element.FindPropertyRelative("m_intValue");
+                    case PreferenceEntryData.PreferenceDataType.Integer:
+                        value = element.FindPropertyRelative("intValue");
                         break;
-                    case PreferenceEntry.PlayerPrefTypes.String:
-                        value = element.FindPropertyRelative("m_strValue");
+                    case PreferenceEntryData.PreferenceDataType.String:
+                        value = element.FindPropertyRelative("strValue");
                         break;
                     default:
                         value = element.FindPropertyRelative("This should never happen");
@@ -326,17 +328,17 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 GUI.enabled = false;
                 string prefKeyName = key.stringValue;
                 EditorGUI.LabelField(new Rect(rect.x, rect.y, spliterPos - 1, EditorGUIUtility.singleLineHeight), new GUIContent(prefKeyName, prefKeyName));
-                EditorGUI.EnumPopup(new Rect(rect.x + spliterPos + 1, rect.y, 60, EditorGUIUtility.singleLineHeight), (PreferenceEntry.PlayerPrefTypes)type.enumValueIndex);
+                EditorGUI.EnumPopup(new Rect(rect.x + spliterPos + 1, rect.y, 60, EditorGUIUtility.singleLineHeight), (PreferenceEntryData.PreferenceDataType)type.enumValueIndex);
 
-                switch ((PreferenceEntry.PlayerPrefTypes)type.enumValueIndex)
+                switch ((PreferenceEntryData.PreferenceDataType)type.enumValueIndex)
                 {
-                    case PreferenceEntry.PlayerPrefTypes.Float:
+                    case PreferenceEntryData.PreferenceDataType.Float:
                         EditorGUI.DelayedFloatField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
-                    case PreferenceEntry.PlayerPrefTypes.Int:
+                    case PreferenceEntryData.PreferenceDataType.Integer:
                         EditorGUI.DelayedIntField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
-                    case PreferenceEntry.PlayerPrefTypes.String:
+                    case PreferenceEntryData.PreferenceDataType.String:
                         EditorGUI.DelayedTextField(new Rect(rect.x + spliterPos + 62, rect.y, rect.width - spliterPos - 60, EditorGUIUtility.singleLineHeight), value, GUIContent.none);
                         break;
                 }
@@ -389,7 +391,7 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 Color defaultColor = GUI.contentColor;
                 if (!EditorGUIUtility.isProSkin)
                 {
-                    GUI.contentColor = Styles.Colors.DarkGray;
+                    GUI.contentColor = UIStyleManager.ColorPalette.PrimaryDark;
                 }
 
                 GUILayout.BeginVertical();
@@ -411,14 +413,14 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 switch (sortOrder)
                 {
                     case PreferencesEntrySortOrder.Asscending:
-                        sortOrderContent = new GUIContent(ImageManager.SortAsscending, "Ascending sorted");
+                        sortOrderContent = new GUIContent(ResourceManager.SortAscendingIcon, "Ascending sorted");
                         break;
                     case PreferencesEntrySortOrder.Descending:
-                        sortOrderContent = new GUIContent(ImageManager.SortDescending, "Descending sorted");
+                        sortOrderContent = new GUIContent(ResourceManager.SortDescendingIcon, "Descending sorted");
                         break;
                     case PreferencesEntrySortOrder.None:
                     default:
-                        sortOrderContent = new GUIContent(ImageManager.SortDisabled, "Not sorted");
+                        sortOrderContent = new GUIContent(ResourceManager.SortNeutralIcon, "Not sorted");
                         break;
                 }
 
@@ -434,7 +436,7 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                     PrepareData(false);
                 }
 
-                GUIContent watcherContent = (entryAccessor.IsMonitoring()) ? new GUIContent(ImageManager.Watching, "Watching changes") : new GUIContent(ImageManager.NotWatching, "Not watching changes");
+                GUIContent watcherContent = (entryAccessor.IsMonitoringActive()) ? new GUIContent(ResourceManager.MonitoringActiveIcon, "Watching changes") : new GUIContent(ResourceManager.MonitoringInactiveIcon, "Not watching changes");
                 if (GUILayout.Button(watcherContent, EditorStyles.toolbarButton))
                 {
                     monitoring = !monitoring;
@@ -442,18 +444,18 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                     EditorPrefs.SetBool("BGTools.PlayerPrefsEditor.WatchingForChanges", monitoring);
 
                     if (monitoring)
-                        entryAccessor.StartMonitoring();
+                        entryAccessor.BeginMonitoring();
                     else
-                        entryAccessor.StopMonitoring();
+                        entryAccessor.EndMonitoring();
 
                     Repaint();
                 }
-                if (GUILayout.Button(new GUIContent(ImageManager.Refresh, "Refresh"), EditorStyles.toolbarButton))
+                if (GUILayout.Button(new GUIContent(ResourceManager.RefreshIcon, "Refresh"), EditorStyles.toolbarButton))
                 {
                     PlayerPrefs.Save();
                     PrepareData();
                 }
-                if (GUILayout.Button(new GUIContent(ImageManager.Trash, "Delete all"), EditorStyles.toolbarButton))
+                if (GUILayout.Button(new GUIContent(ResourceManager.DeleteIcon, "Delete all"), EditorStyles.toolbarButton))
                 {
                     if (EditorUtility.DisplayDialog("Warning!", "Are you sure you want to delete ALL entries from PlayerPrefs?\n\nUse with caution! Unity defined keys are affected too.", "Yes", "No"))
                     {
@@ -468,7 +470,7 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 
                 GUILayout.BeginHorizontal();
 
-                GUILayout.Box(ImageManager.GetOsIcon(), Styles.icon);
+                GUILayout.Box(ResourceManager.GetPlatformIcon(), UIStyleManager.IconDisplayStyle);
                 GUILayout.TextField(platformPathPrefix + Path.DirectorySeparatorChar + pathToPrefs, GUILayout.MinWidth(200));
 
                 GUILayout.EndHorizontal();
@@ -497,7 +499,7 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 
                     GUILayout.BeginHorizontal();
                     GUILayout.FlexibleSpace();
-                    GUILayout.Box(ImageManager.SpinWheelIcons[loadingSpinnerFrame], Styles.icon);
+                    GUILayout.Box(ResourceManager.LoadingSpinnerFrames[loadingSpinnerFrame], UIStyleManager.IconDisplayStyle);
                     GUILayout.FlexibleSpace();
                     GUILayout.EndHorizontal();
 
@@ -519,18 +521,18 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 
         private void PrepareData(bool reloadKeys = true)
         {
-            prefEntryHolder.ClearLists();
+            prefEntryHolder.ClearAllEntries();
 
             LoadKeys(out userDef, out unityDef, reloadKeys);
 
-            CreatePrefEntries(userDef, ref prefEntryHolder.userDefList);
-            CreatePrefEntries(unityDef, ref prefEntryHolder.unityDefList);
+            CreatePrefEntries(userDef, ref prefEntryHolder.userDefinedEntries);
+            CreatePrefEntries(unityDef, ref prefEntryHolder.systemDefinedEntries);
 
             // Clear cache
-            userDefListCache = new SerializedProperty[prefEntryHolder.userDefList.Count];
+            userDefListCache = new SerializedProperty[prefEntryHolder.userDefinedEntries.Count];
         }
 
-        private void CreatePrefEntries(string[] keySource, ref List<PreferenceEntry> listDest)
+        private void CreatePrefEntries(string[] keySource, ref List<PreferenceEntryData> listDest)
         {
             if (!string.IsNullOrEmpty(searchTxt) && searchfield.SearchMode == MySearchField.SearchModePreferencesEditorWindow.Key)
             {
@@ -539,7 +541,7 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 
             foreach (string key in keySource)
             {
-                var entry = new PreferenceEntry();
+                var entry = new PreferenceEntryData();
                 entry.key = key;
 
                 string s = PlayerPrefs.GetString(key, ERROR_VALUE_STR);
@@ -547,7 +549,7 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 if (s != ERROR_VALUE_STR)
                 {
                     entry.strValue = s;
-                    entry.typeSelection = PreferenceEntry.PlayerPrefTypes.String;
+                    entry.typeSelection = PreferenceEntryData.PreferenceDataType.String;
                     listDest.Add(entry);
                     continue;
                 }
@@ -556,7 +558,7 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 if (!float.IsNaN(f))
                 {
                     entry.floatValue = f;
-                    entry.typeSelection = PreferenceEntry.PlayerPrefTypes.Float;
+                    entry.typeSelection = PreferenceEntryData.PreferenceDataType.Float;
                     listDest.Add(entry);
                     continue;
                 }
@@ -565,7 +567,7 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
                 if (i != ERROR_VALUE_INT)
                 {
                     entry.intValue = i;
-                    entry.typeSelection = PreferenceEntry.PlayerPrefTypes.Int;
+                    entry.typeSelection = PreferenceEntryData.PreferenceDataType.Integer;
                     listDest.Add(entry);
                     continue;
                 }
@@ -573,23 +575,23 @@ namespace DevToolkit_Suite.PlayerPrefsEditor
 
             if (!string.IsNullOrEmpty(searchTxt) && searchfield.SearchMode == MySearchField.SearchModePreferencesEditorWindow.Value)
             {
-                listDest = listDest.Where((preferenceEntry) => preferenceEntry.ValueAsString().ToLower().Contains(searchTxt.ToLower())).ToList<PreferenceEntry>();
+                listDest = listDest.Where((preferenceEntry) => preferenceEntry.GetValueAsString().ToLower().Contains(searchTxt.ToLower())).ToList<PreferenceEntryData>();
             }
 
             switch(sortOrder)
             {
                 case PreferencesEntrySortOrder.Asscending:
-                    listDest.Sort((PreferenceEntry x, PreferenceEntry y) => { return x.key.CompareTo(y.key); });
+                    listDest.Sort((PreferenceEntryData x, PreferenceEntryData y) => { return x.key.CompareTo(y.key); });
                     break;
                 case PreferencesEntrySortOrder.Descending:
-                    listDest.Sort((PreferenceEntry x, PreferenceEntry y) => { return y.key.CompareTo(x.key); });
+                    listDest.Sort((PreferenceEntryData x, PreferenceEntryData y) => { return y.key.CompareTo(x.key); });
                     break;
             }
         }
 
         private void LoadKeys(out string[] userDef, out string[] unityDef, bool reloadKeys)
         {
-            string[] keys = entryAccessor.GetKeys(reloadKeys);
+            string[] keys = entryAccessor.GetPreferenceKeys(reloadKeys);
 
             //keys.ToList().ForEach( e => { Debug.Log(e); } );
 
