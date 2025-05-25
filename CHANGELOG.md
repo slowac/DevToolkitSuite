@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.4.0...v1.4.1) (2025-05-25)
+
+
+### Bug Fixes
+
+* fixed welcome screen references ([0c88919](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/commit/0c88919932c1ba359fc1b1ce4b3da14012a507b6))
+
 # [1.4.0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.3.0...v1.4.0) (2025-05-25)
 
 
