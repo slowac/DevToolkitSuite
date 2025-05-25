@@ -71,7 +71,7 @@ Add the following line to your Packages/manifest.json:
 
 ``` "com.ogbcrew.devtoolkitsuite": "https://github.com/slowac/com.ogbcrew.devtoolkitsuite.git" ```
 
-### 📃 Unity Package Manager (via Git URL)
+### 📃 Unity Package Manager (via Git URL) (Recommended)
 Paste this URL into the Unity Package Manager's "Add package from git URL" field:
 
 ``` https://github.com/slowac/com.ogbcrew.devtoolkitsuite.git ```
