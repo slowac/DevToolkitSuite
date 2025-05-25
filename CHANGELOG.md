@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.4.1...v1.4.2) (2025-05-25)
+
+
+### Bug Fixes
+
+* camera bookmark system has a hotkey feature now. ([af0e6f0](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/commit/af0e6f006cf2eb8bcef65973457cf765bb6dcd43))
+
 ## [1.4.1](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.4.0...v1.4.1) (2025-05-25)
 
 
