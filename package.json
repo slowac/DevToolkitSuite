@@ -1,8 +1,8 @@
 {
   "name": "com.ogbcrew.devtoolkitsuite",
-  "version": "1.0.0",
+  "version": "1.4.4",
   "displayName": "DevToolkit Suite",
-  "description": "All-in-one editor toolkit for optimizing your Unity workflow — from project organization to runtime data inspection.",
+  "description": "All-in-one editor toolkit for optimizing your Unity workflow \u2014 from project organization to runtime data inspection.",
   "unity": "2022.3",
   "hideInEditor": false,
   "keywords": [
