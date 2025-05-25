@@ -77,9 +77,9 @@ namespace DevToolkitSuite.PreferenceEditor
         [MenuItem("Tools/DevToolkit Suite/PlayerPrefs Browser", false, 11)]
         static void ShowWindow()
         {
-            PreferencesEditorWindow window = EditorWindow.GetWindow<PreferencesEditorWindow>(false, "Preference Editor");
+            PreferencesEditorWindow window = EditorWindow.GetWindow<PreferencesEditorWindow>(false, "PlayerPrefs Browser");
             window.minSize = new Vector2(270.0f, 300.0f);
-            window.name = "Preference Editor";
+            window.name = "PlayerPrefs Browser";
 
             //window.titleContent = EditorGUIUtility.IconContent("SettingsIcon"); // Icon
 

@@ -24,14 +24,31 @@ namespace DevToolkit_Suite
         private bool showBrokenLinks = true;
         private string searchQuery = "";
 
+        // Modern UI styling
+        private GUIStyle gradientButtonStyle;
+        private Texture2D gradientTex;
+        private static GUIStyle headerLabelStyle;
+        private static GUIStyle sectionLabelStyle;
+        private static GUIStyle modernBoxStyle;
+        private static GUIStyle itemBoxStyle;
+        private static GUIStyle separatorStyle;
+        private static GUIStyle statsBoxStyle;
+        private Vector2 scrollPosition = Vector2.zero;
+
         [MenuItem("Tools/DevToolkit Suite/Scene & Level Info Panel",false,36)]
         public static void ShowWindow()
         {
-            GetWindow<SceneLevelInfoPanel>("Scene Info").minSize = new Vector2(420, 520);
+            var window = GetWindow<SceneLevelInfoPanel>("Scene Info");
+            window.minSize = new Vector2(320, 400);
         }
 
         private void OnEnable()
         {
+            InitStyles();
+
+            if (gradientTex == null)
+                gradientTex = CreateHorizontalGradient(256, 32, new Color(0f, 0.686f, 0.972f), new Color(0.008f, 0.925f, 0.643f));
+
             AnalyzeScene();
         }
 
@@ -107,127 +124,518 @@ namespace DevToolkit_Suite
 
             InitStyles();
 
-            EditorGUILayout.Space();
-            GUILayout.Label("🌍 Scene & Level Info", EditorStyles.boldLabel);
-            EditorGUILayout.Space();
+            if (gradientTex == null)
+                gradientTex = CreateHorizontalGradient(256, 32, new Color(0f, 0.686f, 0.972f), new Color(0.008f, 0.925f, 0.643f));
 
-            EditorGUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button("🔄 Refresh", GUILayout.Width(100), GUILayout.Height(26)))
-            {
-                AnalyzeScene();
-            }
-            EditorGUILayout.EndHorizontal();
+            // Beautiful header with gradient background
+            Rect headerRect = new Rect(0, 0, position.width, 50);
+            GUI.DrawTexture(headerRect, gradientTex, ScaleMode.StretchToFill);
+            EditorGUILayout.Space(15);
+            EditorGUILayout.LabelField("🌍 Scene & Level Info", headerLabelStyle);
+            EditorGUILayout.Space(10);
 
+            // Begin scroll view for all content
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+
+            // Statistics Overview Section
+            EditorGUILayout.BeginVertical(modernBoxStyle);
+            EditorGUILayout.LabelField("📊 Scene Statistics", sectionLabelStyle);
+            DrawModernStatsOverview();
+            EditorGUILayout.EndVertical();
+
+            // Search & Filter Controls Section
+            EditorGUILayout.BeginVertical(modernBoxStyle);
+            EditorGUILayout.LabelField("🔍 Search & Filters", sectionLabelStyle);
             EditorGUILayout.Space(5);
-            DrawFilterControls();
+            DrawModernFilterControls();
+            EditorGUILayout.EndVertical();
 
-            scroll = EditorGUILayout.BeginScrollView(scroll);
+            // Analysis Results
+            if (showPrefabs) DrawModernPrefabCounts();
+            if (showTriggers) DrawModernFilteredList("🎯 Triggers", triggers);
+            if (showColliders) DrawModernFilteredList("🧱 Colliders", colliders);
+            if (showRigidbodies) DrawModernFilteredList("⚙️ Rigidbodies", rigidbodies);
+            if (showBrokenLinks) DrawModernBrokenLinks();
 
-            if (showPrefabs) DrawCategory("📦 Prefab Counts", prefabCounts.Select((kv, i) => (label: $"{kv.Key} x{kv.Value}", obj: (GameObject)null)).ToList());
-            if (showTriggers) DrawFilteredList("🎯 Triggers", triggers);
-            if (showColliders) DrawFilteredList("🧱 Colliders", colliders);
-            if (showRigidbodies) DrawFilteredList("⚙️ Rigidbodies", rigidbodies);
-            if (showPrefabs) DrawFilteredList("📦 Prefabs", prefabs);
-            if (showBrokenLinks) DrawBrokenLinks();
-
+            // End scroll view
             EditorGUILayout.EndScrollView();
         }
 
         private void InitStyles()
         {
-            GUI.skin.label.fontSize = 12;
-            GUI.skin.label.fontStyle = FontStyle.Bold;
-        }
-
-        private void DrawFilterControls()
-        {
-            EditorGUILayout.BeginHorizontal("box");
-            GUILayout.Label("🔍 Search:", GUILayout.Width(60));
-            searchQuery = EditorGUILayout.TextField(searchQuery);
-            GUILayout.FlexibleSpace();
-            showTriggers = EditorGUILayout.ToggleLeft("Triggers", showTriggers, GUILayout.Width(80));
-            showColliders = EditorGUILayout.ToggleLeft("Colliders", showColliders, GUILayout.Width(90));
-            showRigidbodies = EditorGUILayout.ToggleLeft("Rigidbodies", showRigidbodies, GUILayout.Width(100));
-            showPrefabs = EditorGUILayout.ToggleLeft("Prefabs", showPrefabs, GUILayout.Width(90));
-            showBrokenLinks = EditorGUILayout.ToggleLeft("Broken Links", showBrokenLinks, GUILayout.Width(110));
-            EditorGUILayout.EndHorizontal();
-        }
-
-        private void DrawCategory(string title, List<(string label, GameObject obj)> entries)
-        {
-            EditorGUILayout.Space();
-            GUILayout.Label(title, EditorStyles.largeLabel);
-
-            if (entries.Count == 0)
+            if (headerLabelStyle == null)
             {
-                EditorGUILayout.HelpBox("None found.", MessageType.Info);
-                return;
+                headerLabelStyle = new GUIStyle(EditorStyles.boldLabel)
+                {
+                    fontSize = 18,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold,
+                    normal = { textColor = new Color(0.9f, 0.9f, 0.9f) },
+                    margin = new RectOffset(0, 0, 10, 15)
+                };
             }
 
-            EditorGUILayout.BeginVertical("box");
-            foreach (var entry in entries)
+            if (sectionLabelStyle == null)
             {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label(entry.label);
+                sectionLabelStyle = new GUIStyle(EditorStyles.label)
+                {
+                    fontSize = 13,
+                    fontStyle = FontStyle.Bold,
+                    normal = { textColor = new Color(0.7f, 0.9f, 1f) },
+                    margin = new RectOffset(5, 0, 8, 5)
+                };
+            }
+
+            if (modernBoxStyle == null)
+            {
+                modernBoxStyle = new GUIStyle("box")
+                {
+                    padding = new RectOffset(15, 15, 12, 12),
+                    margin = new RectOffset(5, 5, 5, 8),
+                    normal = { 
+                        background = CreateSolidTexture(new Color(0.25f, 0.25f, 0.25f, 0.8f)),
+                        textColor = Color.white 
+                    },
+                    border = new RectOffset(1, 1, 1, 1)
+                };
+            }
+
+            if (itemBoxStyle == null)
+            {
+                itemBoxStyle = new GUIStyle("box")
+                {
+                    padding = new RectOffset(10, 10, 8, 8),
+                    margin = new RectOffset(5, 5, 2, 2),
+                    normal = { 
+                        background = CreateSolidTexture(new Color(0.2f, 0.2f, 0.2f, 0.9f)),
+                        textColor = Color.white 
+                    },
+                    border = new RectOffset(1, 1, 1, 1)
+                };
+            }
+
+            if (statsBoxStyle == null)
+            {
+                statsBoxStyle = new GUIStyle("box")
+                {
+                    padding = new RectOffset(12, 12, 8, 8),
+                    margin = new RectOffset(5, 5, 5, 10),
+                    normal = { 
+                        background = CreateSolidTexture(new Color(0.15f, 0.3f, 0.15f, 0.9f)),
+                        textColor = Color.white 
+                    },
+                    border = new RectOffset(1, 1, 1, 1)
+                };
+            }
+
+            if (separatorStyle == null)
+            {
+                separatorStyle = new GUIStyle()
+                {
+                    normal = { background = CreateSolidTexture(new Color(0.4f, 0.4f, 0.4f, 0.5f)) },
+                    margin = new RectOffset(10, 10, 5, 5),
+                    fixedHeight = 1
+                };
+            }
+
+            if (gradientButtonStyle == null)
+            {
+                gradientButtonStyle = new GUIStyle()
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold,
+                    normal = { textColor = Color.white },
+                    hover = { textColor = Color.white },
+                    active = { textColor = Color.white },
+                    focused = { textColor = Color.white },
+                    fontSize = 12,
+                    padding = new RectOffset(8, 8, 6, 6),
+                    margin = new RectOffset(3, 3, 3, 3)
+                };
+            }
+
+            if (gradientTex == null)
+            {
+                gradientTex = CreateHorizontalGradient(256, 32, new Color(0f, 0.686f, 0.972f), new Color(0.008f, 0.925f, 0.643f));
+            }
+        }
+
+        private void DrawModernStatsOverview()
+        {
+            EditorGUILayout.BeginVertical(statsBoxStyle);
+            
+            GUIStyle statLabelStyle = new GUIStyle(EditorStyles.label)
+            {
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = Color.white }
+            };
+
+            // Responsive stats layout
+            bool isVeryNarrow = position.width < 380;
+            bool isNarrow = position.width < 500;
+
+            if (isVeryNarrow)
+            {
+                // Stack all stats vertically for very narrow windows
+                EditorGUILayout.LabelField($"📦 Prefabs: {prefabCounts.Count}", statLabelStyle);
+                EditorGUILayout.LabelField($"🎯 Triggers: {triggers.Count}", statLabelStyle);
+                EditorGUILayout.LabelField($"🧱 Colliders: {colliders.Count}", statLabelStyle);
+                EditorGUILayout.LabelField($"⚙️ Rigidbodies: {rigidbodies.Count}", statLabelStyle);
+                EditorGUILayout.LabelField($"❌ Broken Links: {brokenLinks.Count}", statLabelStyle);
+                
+                EditorGUILayout.Space(3);
+                if (GradientButton("🔄 Refresh", gradientTex, gradientButtonStyle))
+                {
+                    AnalyzeScene();
+                }
+            }
+            else if (isNarrow)
+            {
+                // 2x3 grid layout for narrow windows
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"📦 Prefabs: {prefabCounts.Count}", statLabelStyle);
+                EditorGUILayout.LabelField($"🎯 Triggers: {triggers.Count}", statLabelStyle);
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"🧱 Colliders: {colliders.Count}", statLabelStyle);
+                EditorGUILayout.LabelField($"⚙️ Rigidbodies: {rigidbodies.Count}", statLabelStyle);
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"❌ Broken Links: {brokenLinks.Count}", statLabelStyle);
                 GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
+                if (GradientButton("🔄 Refresh", gradientTex, gradientButtonStyle, GUILayout.Width(80)))
+                {
+                    AnalyzeScene();
+                }
+                EditorGUILayout.EndHorizontal();
             }
+            else
+            {
+                // Original horizontal layout for wider windows
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"📦 Prefabs: {prefabCounts.Count}", statLabelStyle);
+                EditorGUILayout.LabelField($"🎯 Triggers: {triggers.Count}", statLabelStyle);
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"🧱 Colliders: {colliders.Count}", statLabelStyle);
+                EditorGUILayout.LabelField($"⚙️ Rigidbodies: {rigidbodies.Count}", statLabelStyle);
+                EditorGUILayout.EndHorizontal();
+
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField($"❌ Broken Links: {brokenLinks.Count}", statLabelStyle);
+                
+                GUILayout.FlexibleSpace();
+                if (GradientButton("🔄 Refresh", gradientTex, gradientButtonStyle, GUILayout.Width(100)))
+                {
+                    AnalyzeScene();
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawFilteredList(string title, List<GameObject> list)
+        private void DrawModernFilterControls()
         {
-            EditorGUILayout.Space();
-            GUILayout.Label(title, EditorStyles.largeLabel);
+            // Search bar
+            EditorGUILayout.LabelField("Search:", EditorStyles.miniLabel);
+            searchQuery = EditorGUILayout.TextField(searchQuery, GUILayout.Height(22));
+            
+            EditorGUILayout.Space(5);
+            
+            // Filter toggles - responsive layout with multiple breakpoints
+            bool isVeryNarrow = position.width < 400;
+            bool isNarrow = position.width < 550;
+            bool isMedium = position.width < 700;
+
+            if (isVeryNarrow)
+            {
+                // Stack all vertically for very narrow windows
+                showTriggers = EditorGUILayout.Toggle("🎯 Triggers", showTriggers);
+                showColliders = EditorGUILayout.Toggle("🧱 Colliders", showColliders);
+                showRigidbodies = EditorGUILayout.Toggle("⚙️ Rigidbodies", showRigidbodies);
+                showPrefabs = EditorGUILayout.Toggle("📦 Prefabs", showPrefabs);
+                showBrokenLinks = EditorGUILayout.Toggle("❌ Broken Links", showBrokenLinks);
+            }
+            else if (isNarrow)
+            {
+                // 2x3 grid layout for narrow windows
+                EditorGUILayout.BeginHorizontal();
+                showTriggers = EditorGUILayout.Toggle("🎯 Triggers", showTriggers);
+                showColliders = EditorGUILayout.Toggle("🧱 Colliders", showColliders);
+                EditorGUILayout.EndHorizontal();
+                
+                EditorGUILayout.BeginHorizontal();
+                showRigidbodies = EditorGUILayout.Toggle("⚙️ Rigidbodies", showRigidbodies);
+                showPrefabs = EditorGUILayout.Toggle("📦 Prefabs", showPrefabs);
+                EditorGUILayout.EndHorizontal();
+                
+                EditorGUILayout.BeginHorizontal();
+                showBrokenLinks = EditorGUILayout.Toggle("❌ Broken Links", showBrokenLinks);
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+            }
+            else if (isMedium)
+            {
+                // 3+2 layout for medium windows
+                EditorGUILayout.BeginHorizontal();
+                showTriggers = EditorGUILayout.Toggle("🎯 Triggers", showTriggers);
+                showColliders = EditorGUILayout.Toggle("🧱 Colliders", showColliders);
+                showRigidbodies = EditorGUILayout.Toggle("⚙️ Rigidbodies", showRigidbodies);
+                EditorGUILayout.EndHorizontal();
+                
+                EditorGUILayout.BeginHorizontal();
+                showPrefabs = EditorGUILayout.Toggle("📦 Prefabs", showPrefabs);
+                showBrokenLinks = EditorGUILayout.Toggle("❌ Broken Links", showBrokenLinks);
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+            }
+            else
+            {
+                // All in one row for wide windows
+                EditorGUILayout.BeginHorizontal();
+                showTriggers = EditorGUILayout.Toggle("🎯 Triggers", showTriggers);
+                showColliders = EditorGUILayout.Toggle("🧱 Colliders", showColliders);
+                showRigidbodies = EditorGUILayout.Toggle("⚙️ Rigidbodies", showRigidbodies);
+                showPrefabs = EditorGUILayout.Toggle("📦 Prefabs", showPrefabs);
+                showBrokenLinks = EditorGUILayout.Toggle("❌ Broken Links", showBrokenLinks);
+                GUILayout.FlexibleSpace();
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        private void DrawModernPrefabCounts()
+        {
+            EditorGUILayout.BeginVertical(modernBoxStyle);
+            EditorGUILayout.LabelField("📦 Prefab Counts", sectionLabelStyle);
+            EditorGUILayout.Space(5);
+
+            if (prefabCounts.Count == 0)
+            {
+                EditorGUILayout.HelpBox("📂 No prefabs found in scene.", MessageType.Info);
+                EditorGUILayout.EndVertical();
+                return;
+            }
+
+            foreach (var kvp in prefabCounts.OrderBy(x => x.Key))
+            {
+                EditorGUILayout.BeginVertical(itemBoxStyle);
+                
+                // Responsive layout for prefab items
+                bool isNarrow = position.width < 450;
+                if (isNarrow)
+                {
+                    // Stack vertically for narrow windows
+                    EditorGUILayout.LabelField($"📄 {kvp.Key}", EditorStyles.boldLabel);
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField($"Count: x{kvp.Value}", GUILayout.Width(80));
+                    GUILayout.FlexibleSpace();
+                    
+                    if (GradientButton("🔍 Find All", gradientTex, gradientButtonStyle, GUILayout.Width(80)))
+                    {
+                        var matching = prefabs.Where(p => p.name == kvp.Key).ToArray();
+                        Selection.objects = matching;
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+                else
+                {
+                    // Horizontal layout for wider windows
+                    EditorGUILayout.BeginHorizontal();
+                    
+                    // Calculate dynamic width based on window size
+                    float nameWidth = Mathf.Min(200, position.width * 0.4f);
+                    EditorGUILayout.LabelField($"📄 {kvp.Key}", EditorStyles.boldLabel, GUILayout.Width(nameWidth));
+                    EditorGUILayout.LabelField($"x{kvp.Value}", GUILayout.Width(50));
+                    
+                    GUILayout.FlexibleSpace();
+                    
+                    if (GradientButton("🔍 Find All", gradientTex, gradientButtonStyle, GUILayout.Width(100)))
+                    {
+                        var matching = prefabs.Where(p => p.name == kvp.Key).ToArray();
+                        Selection.objects = matching;
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUILayout.EndVertical();
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        private void DrawModernFilteredList(string title, List<GameObject> list)
+        {
+            EditorGUILayout.BeginVertical(modernBoxStyle);
+            EditorGUILayout.LabelField(title, sectionLabelStyle);
+            EditorGUILayout.Space(5);
 
             var filtered = string.IsNullOrEmpty(searchQuery) ? list : list.Where(go => go.name.ToLower().Contains(searchQuery.ToLower())).ToList();
 
             if (filtered.Count == 0)
             {
-                EditorGUILayout.HelpBox("None found.", MessageType.Info);
+                EditorGUILayout.HelpBox($"📂 No {title.ToLower().Replace("🎯", "").Replace("🧱", "").Replace("⚙️", "").Trim()} found matching criteria.", MessageType.Info);
+                EditorGUILayout.EndVertical();
                 return;
             }
 
-            EditorGUILayout.BeginVertical("box");
             foreach (var go in filtered)
             {
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.Label(new GUIContent(go.name, "Click to highlight in hierarchy"));
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Ping", GUILayout.Width(60)))
+                if (go == null) continue;
+
+                EditorGUILayout.BeginVertical(itemBoxStyle);
+                
+                // Responsive layout for list items
+                bool isNarrow = position.width < 400;
+                if (isNarrow)
                 {
-                    EditorGUIUtility.PingObject(go);
+                    // Stack vertically for narrow windows
+                    EditorGUILayout.LabelField(new GUIContent($"🎮 {go.name}", "Object in scene hierarchy"), EditorStyles.boldLabel);
+                    if (GradientButton("📍 Ping", gradientTex, gradientButtonStyle, GUILayout.Height(22)))
+                    {
+                        EditorGUIUtility.PingObject(go);
+                        Selection.activeObject = go;
+                    }
                 }
-                EditorGUILayout.EndHorizontal();
+                else
+                {
+                    // Horizontal layout for wider windows
+                    EditorGUILayout.BeginHorizontal();
+                    
+                    // Calculate dynamic width for object name
+                    float nameWidth = Mathf.Min(250, position.width * 0.6f);
+                    EditorGUILayout.LabelField(new GUIContent($"🎮 {go.name}", "Object in scene hierarchy"), EditorStyles.boldLabel, GUILayout.Width(nameWidth));
+                    
+                    GUILayout.FlexibleSpace();
+                    
+                    if (GradientButton("📍 Ping", gradientTex, gradientButtonStyle, GUILayout.Width(80)))
+                    {
+                        EditorGUIUtility.PingObject(go);
+                        Selection.activeObject = go;
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUILayout.EndVertical();
             }
+
             EditorGUILayout.EndVertical();
         }
 
-        private void DrawBrokenLinks()
+        private void DrawModernBrokenLinks()
         {
-            EditorGUILayout.Space();
-            GUILayout.Label("❌ Broken Links", EditorStyles.largeLabel);
+            EditorGUILayout.BeginVertical(modernBoxStyle);
+            EditorGUILayout.LabelField("❌ Broken Links", sectionLabelStyle);
+            EditorGUILayout.Space(5);
 
             if (brokenLinks.Count == 0)
             {
-                EditorGUILayout.HelpBox("No broken references found.", MessageType.Info);
+                EditorGUILayout.HelpBox("✅ No broken references found in scene.", MessageType.Info);
+                EditorGUILayout.EndVertical();
                 return;
             }
 
-            EditorGUILayout.BeginVertical("box");
             foreach (var pair in brokenLinks)
             {
-                EditorGUILayout.BeginHorizontal();
-                GUILayout.Label(pair.Key.name + " - " + pair.Value);
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Ping", GUILayout.Width(60)))
+                if (pair.Key == null) continue;
+
+                EditorGUILayout.BeginVertical(itemBoxStyle);
+                
+                // Responsive layout for broken links
+                bool isVeryNarrow = position.width < 350;
+                bool isNarrow = position.width < 500;
+                
+                if (isVeryNarrow)
                 {
-                    EditorGUIUtility.PingObject(pair.Key);
+                    // Stack all vertically for very narrow windows
+                    EditorGUILayout.LabelField($"⚠️ {pair.Key.name}", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField($"🔗 {pair.Value}", EditorStyles.miniLabel);
+                    if (GradientButton("📍 Ping", gradientTex, gradientButtonStyle, GUILayout.Height(22)))
+                    {
+                        EditorGUIUtility.PingObject(pair.Key);
+                        Selection.activeObject = pair.Key;
+                    }
                 }
-                EditorGUILayout.EndHorizontal();
+                else if (isNarrow)
+                {
+                    // Two row layout for narrow windows
+                    EditorGUILayout.LabelField($"⚠️ {pair.Key.name}", EditorStyles.boldLabel);
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUILayout.LabelField($"🔗 {pair.Value}", EditorStyles.miniLabel);
+                    GUILayout.FlexibleSpace();
+                    if (GradientButton("📍 Ping", gradientTex, gradientButtonStyle, GUILayout.Width(70)))
+                    {
+                        EditorGUIUtility.PingObject(pair.Key);
+                        Selection.activeObject = pair.Key;
+                    }
+                    EditorGUILayout.EndHorizontal();
+                }
+                else
+                {
+                    // Original horizontal layout for wider windows
+                    EditorGUILayout.BeginHorizontal();
+                    
+                    float nameWidth = Mathf.Min(150, position.width * 0.3f);
+                    EditorGUILayout.LabelField($"⚠️ {pair.Key.name}", EditorStyles.boldLabel, GUILayout.Width(nameWidth));
+                    EditorGUILayout.LabelField($"🔗 {pair.Value}", EditorStyles.miniLabel);
+                    
+                    GUILayout.FlexibleSpace();
+                    
+                    if (GradientButton("📍 Ping", gradientTex, gradientButtonStyle, GUILayout.Width(80)))
+                    {
+                        EditorGUIUtility.PingObject(pair.Key);
+                        Selection.activeObject = pair.Key;
+                    }
+
+                    EditorGUILayout.EndHorizontal();
+                }
+                EditorGUILayout.EndVertical();
             }
+
             EditorGUILayout.EndVertical();
+        }
+
+        // Helper methods for modern UI
+        private bool GradientButton(string text, Texture2D hoverTex, GUIStyle style, params GUILayoutOption[] options)
+        {
+            // Simplified version that works better with EditorGUILayout
+            GUIContent content = new GUIContent(text);
+            
+            // Use a consistent style for buttons
+            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button)
+            {
+                fontStyle = FontStyle.Bold,
+                normal = { textColor = Color.white }
+            };
+
+            return GUILayout.Button(content, buttonStyle, options);
+        }
+
+        private Texture2D CreateHorizontalGradient(int width, int height, Color left, Color right)
+        {
+            Texture2D tex = new Texture2D(width, height);
+            tex.wrapMode = TextureWrapMode.Clamp;
+            tex.filterMode = FilterMode.Bilinear;
+
+            for (int x = 0; x < width; x++)
+            {
+                Color col = Color.Lerp(left, right, x / (float)(width - 1));
+                for (int y = 0; y < height; y++) tex.SetPixel(x, y, col);
+            }
+            tex.Apply();
+            return tex;
+        }
+
+        private Texture2D CreateSolidTexture(Color color)
+        {
+            Texture2D tex = new Texture2D(1, 1);
+            tex.SetPixel(0, 0, color);
+            tex.Apply();
+            return tex;
         }
     }
 }
