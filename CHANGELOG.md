@@ -1,3 +1,10 @@
+## [1.4.4](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.4.3...v1.4.4) (2025-05-25)
+
+
+### Bug Fixes
+
+* Documentation files added ([b2ab3b5](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/commit/b2ab3b577a21a991b05eb50c96f53984b7b5a924))
+
 ## [1.4.3](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.4.2...v1.4.3) (2025-05-25)
 
 
