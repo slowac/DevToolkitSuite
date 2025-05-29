@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/slowac/DevToolkitSuite/compare/v1.4.4...v1.5.0) (2025-05-29)
+
+
+### Features
+
+* new gui, docs and demo scene ([427f3b2](https://github.com/slowac/DevToolkitSuite/commit/427f3b2e736f0287a840e70e75c45a905ab49663))
+
 ## [1.4.4](https://github.com/slowac/com.ogbcrew.devtoolkitsuite/compare/v1.4.3...v1.4.4) (2025-05-25)
 
 
