@@ -74,11 +74,20 @@ namespace DevToolkitSuite.PreferenceEditor
 #elif UNITY_EDITOR_OSX
         private readonly char[] invalidFilenameChars = { '$', '%', '&', '\\', '/', ':', '<', '>', '|', '~' };
 #endif
+
+        // Modern UI Styling
+        private static GUIStyle headerLabelStyle;
+        private static GUIStyle sectionLabelStyle;
+        private static GUIStyle modernBoxStyle;
+        private static GUIStyle pathBoxStyle;
+        private static GUIStyle modernToolbarStyle;
+        private static GUIStyle gradientButtonStyle;
+        private static Texture2D gradientTex;
         [MenuItem("Tools/DevToolkit Suite/PlayerPrefs Browser", false, 11)]
         static void ShowWindow()
         {
             PreferencesEditorWindow window = EditorWindow.GetWindow<PreferencesEditorWindow>(false, "PlayerPrefs Browser");
-            window.minSize = new Vector2(270.0f, 300.0f);
+            window.minSize = new Vector2(350.0f, 400.0f);
             window.name = "PlayerPrefs Browser";
 
             //window.titleContent = EditorGUIUtility.IconContent("SettingsIcon"); // Icon
@@ -117,6 +126,116 @@ namespace DevToolkitSuite.PreferenceEditor
                 InitReorderedList();
                 PrepareData();
             }
+            
+            InitModernStyles();
+        }
+
+        private void InitModernStyles()
+        {
+            if (headerLabelStyle == null)
+            {
+                headerLabelStyle = new GUIStyle(EditorStyles.boldLabel)
+                {
+                    fontSize = 18,
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold,
+                    normal = { textColor = new Color(0.9f, 0.9f, 0.9f) },
+                    margin = new RectOffset(0, 0, 10, 15)
+                };
+            }
+
+            if (sectionLabelStyle == null)
+            {
+                sectionLabelStyle = new GUIStyle(EditorStyles.label)
+                {
+                    fontSize = 13,
+                    fontStyle = FontStyle.Bold,
+                    normal = { textColor = new Color(0.7f, 0.9f, 1f) },
+                    margin = new RectOffset(5, 0, 8, 5)
+                };
+            }
+
+            if (modernBoxStyle == null)
+            {
+                modernBoxStyle = new GUIStyle()
+                {
+                    padding = new RectOffset(15, 15, 12, 12),
+                    margin = new RectOffset(5, 5, 5, 8),
+                    normal = { 
+                        background = CreateSolidTexture(new Color(0.25f, 0.25f, 0.25f, 0.8f)),
+                        textColor = Color.white 
+                    },
+                    border = new RectOffset(0, 0, 0, 0)
+                };
+            }
+
+            if (pathBoxStyle == null)
+            {
+                pathBoxStyle = new GUIStyle()
+                {
+                    padding = new RectOffset(10, 10, 8, 8),
+                    margin = new RectOffset(5, 5, 2, 5),
+                    normal = { 
+                        background = CreateSolidTexture(new Color(0.2f, 0.2f, 0.2f, 0.9f))
+                    },
+                    border = new RectOffset(0, 0, 0, 0)
+                };
+            }
+
+            if (modernToolbarStyle == null)
+            {
+                modernToolbarStyle = new GUIStyle(EditorStyles.toolbar)
+                {
+                    normal = { 
+                        background = CreateSolidTexture(new Color(0.3f, 0.3f, 0.3f, 0.95f))
+                    }
+                };
+            }
+
+            if (gradientButtonStyle == null)
+            {
+                gradientButtonStyle = new GUIStyle()
+                {
+                    alignment = TextAnchor.MiddleCenter,
+                    fontStyle = FontStyle.Bold,
+                    normal = { textColor = Color.white },
+                    hover = { textColor = Color.white },
+                    active = { textColor = Color.white },
+                    focused = { textColor = Color.white },
+                    fontSize = 12,
+                    padding = new RectOffset(8, 8, 6, 6),
+                    margin = new RectOffset(3, 3, 3, 3)
+                };
+            }
+
+            if (gradientTex == null)
+            {
+                gradientTex = CreateHorizontalGradient(256, 32, new Color(0f, 0.686f, 0.972f), new Color(0.008f, 0.925f, 0.643f));
+            }
+        }
+
+        private Texture2D CreateSolidTexture(Color color)
+        {
+            Texture2D tex = new Texture2D(1, 1);
+            tex.SetPixel(0, 0, color);
+            tex.Apply();
+            return tex;
+        }
+
+        private Texture2D CreateHorizontalGradient(int width, int height, Color left, Color right)
+        {
+            Texture2D tex = new Texture2D(width, height);
+            for (int x = 0; x < width; x++)
+            {
+                float t = (float)x / (width - 1);
+                Color color = Color.Lerp(left, right, t);
+                for (int y = 0; y < height; y++)
+                {
+                    tex.SetPixel(x, y, color);
+                }
+            }
+            tex.Apply();
+            return tex;
         }
 
         // Handel view updates for monitored changes
@@ -170,7 +289,8 @@ namespace DevToolkitSuite.PreferenceEditor
 
             userDefList.drawHeaderCallback = (Rect rect) =>
             {
-                EditorGUI.LabelField(rect, "User defined");
+                InitModernStyles();
+                EditorGUI.LabelField(rect, "👤 User Defined Preferences", sectionLabelStyle ?? EditorStyles.boldLabel);
             };
             userDefList.drawElementBackgroundCallback = OnDrawElementBackgroundCallback;
             userDefList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
@@ -346,7 +466,8 @@ namespace DevToolkitSuite.PreferenceEditor
             };
             unityDefList.drawHeaderCallback = (Rect rect) =>
             {
-                EditorGUI.LabelField(rect, "Unity defined");
+                InitModernStyles();
+                EditorGUI.LabelField(rect, "🔧 Unity System Preferences", sectionLabelStyle ?? EditorStyles.boldLabel);
             };
         }
 
@@ -383,6 +504,8 @@ namespace DevToolkitSuite.PreferenceEditor
             // Need to catch 'Stack empty' error on linux
             try
             {
+                InitModernStyles();
+
                 if (showLoadingIndicatorOverlay)
                 {
                     GUI.enabled = false;
@@ -394,12 +517,24 @@ namespace DevToolkitSuite.PreferenceEditor
                     GUI.contentColor = UIStyleManager.ColorPalette.PrimaryDark;
                 }
 
+                // Beautiful header with gradient background
+                Rect headerRect = new Rect(0, 0, position.width, 50);
+                GUI.DrawTexture(headerRect, gradientTex, ScaleMode.StretchToFill);
+                EditorGUILayout.Space(15);
+                EditorGUILayout.LabelField("🗃️ PlayerPrefs Browser", headerLabelStyle);
+                EditorGUILayout.Space(10);
+
                 GUILayout.BeginVertical();
 
-                GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                // Modern Toolbar Section
+                EditorGUILayout.BeginVertical(modernBoxStyle);
+                EditorGUILayout.LabelField("🔍 Search & Controls", sectionLabelStyle);
+                EditorGUILayout.Space(3);
+
+                EditorGUILayout.BeginHorizontal();
 
                 EditorGUI.BeginChangeCheck();
-                searchTxt = searchfield.OnToolbarGUI(searchTxt);
+                searchTxt = EditorGUILayout.TextField(searchTxt, EditorStyles.toolbarSearchField, GUILayout.ExpandWidth(true));
                 if (EditorGUI.EndChangeCheck())
                 {
                     PrepareData(false);
@@ -466,14 +601,24 @@ namespace DevToolkitSuite.PreferenceEditor
                 }
                 EditorGUIUtility.SetIconSize(new Vector2(0.0f, 0.0f));
 
-                GUILayout.EndHorizontal();
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.EndVertical();
+
+                // Path Information Section  
+                EditorGUILayout.BeginVertical(pathBoxStyle);
+                EditorGUILayout.LabelField("📂 Storage Location", sectionLabelStyle);
+                EditorGUILayout.Space(3);
 
                 GUILayout.BeginHorizontal();
-
                 GUILayout.Box(ResourceManager.GetPlatformIcon(), UIStyleManager.IconDisplayStyle);
                 GUILayout.TextField(platformPathPrefix + Path.DirectorySeparatorChar + pathToPrefs, GUILayout.MinWidth(200));
-
                 GUILayout.EndHorizontal();
+                EditorGUILayout.EndVertical();
+
+                // Content Section
+                EditorGUILayout.BeginVertical(modernBoxStyle);
+                EditorGUILayout.LabelField("⚙️ Player Preferences", sectionLabelStyle);
+                EditorGUILayout.Space(3);
 
                 scrollPos = GUILayout.BeginScrollView(scrollPos);
                 serializedObject.Update();
@@ -482,12 +627,14 @@ namespace DevToolkitSuite.PreferenceEditor
 
                 GUILayout.FlexibleSpace();
 
-                showSystemGroup = EditorGUILayout.Foldout(showSystemGroup, new GUIContent("Show System"));
+                showSystemGroup = EditorGUILayout.Foldout(showSystemGroup, new GUIContent("🔧 Show System Preferences"));
                 if (showSystemGroup)
                 {
                     unityDefList.DoLayoutList();
                 }
                 GUILayout.EndScrollView();
+                EditorGUILayout.EndVertical();
+
                 GUILayout.EndVertical();
 
                 GUI.enabled = true;
@@ -638,65 +785,65 @@ namespace DevToolkitSuite.PreferenceEditor
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         }
 #endif
-    }
-}
+        }
 
-public class MySearchField : SearchField
-{
-    public enum SearchModePreferencesEditorWindow { Key, Value }
-
-    public SearchModePreferencesEditorWindow SearchMode { get; private set; }
-
-    public Action DropdownSelectionDelegate;
-
-    public new string OnGUI(
-        Rect rect,
-        string text,
-        GUIStyle style,
-        GUIStyle cancelButtonStyle,
-        GUIStyle emptyCancelButtonStyle)
+    public class MySearchField : SearchField
     {
-        style.padding.left = 17;
-        Rect ContextMenuRect = new Rect(rect.x, rect.y, 10, rect.height);
+        public enum SearchModePreferencesEditorWindow { Key, Value }
 
-        // Add interactive area
-        EditorGUIUtility.AddCursorRect(ContextMenuRect, MouseCursor.Text);
-        if (Event.current.type == EventType.MouseDown && ContextMenuRect.Contains(Event.current.mousePosition))
+        public SearchModePreferencesEditorWindow SearchMode { get; private set; }
+
+        public Action DropdownSelectionDelegate;
+
+        public new string OnGUI(
+            Rect rect,
+            string text,
+            GUIStyle style,
+            GUIStyle cancelButtonStyle,
+            GUIStyle emptyCancelButtonStyle)
         {
-            void OnDropdownSelection(object parameter)
+            style.padding.left = 17;
+            Rect ContextMenuRect = new Rect(rect.x, rect.y, 10, rect.height);
+
+            // Add interactive area
+            EditorGUIUtility.AddCursorRect(ContextMenuRect, MouseCursor.Text);
+            if (Event.current.type == EventType.MouseDown && ContextMenuRect.Contains(Event.current.mousePosition))
             {
-                SearchMode = (SearchModePreferencesEditorWindow) Enum.Parse(typeof(SearchModePreferencesEditorWindow), parameter.ToString());
-                DropdownSelectionDelegate();
+                void OnDropdownSelection(object parameter)
+                {
+                    SearchMode = (SearchModePreferencesEditorWindow) Enum.Parse(typeof(SearchModePreferencesEditorWindow), parameter.ToString());
+                    DropdownSelectionDelegate();
+                }
+
+                GenericMenu menu = new GenericMenu();
+                foreach(SearchModePreferencesEditorWindow EnumIt in Enum.GetValues(typeof(SearchModePreferencesEditorWindow)))
+                {
+                    String EnumName = Enum.GetName(typeof(SearchModePreferencesEditorWindow), EnumIt);
+                    menu.AddItem(new GUIContent(EnumName), SearchMode == EnumIt, OnDropdownSelection, EnumName);
+                }
+
+                menu.DropDown(rect);
             }
 
-            GenericMenu menu = new GenericMenu();
-            foreach(SearchModePreferencesEditorWindow EnumIt in Enum.GetValues(typeof(SearchModePreferencesEditorWindow)))
+            // Render original search field
+            String result = base.OnGUI(rect, text, style, cancelButtonStyle, emptyCancelButtonStyle);
+
+            // Render additional images
+            GUIStyle ContexMenuOverlayStyle = GUIStyle.none;
+            ContexMenuOverlayStyle.contentOffset = new Vector2(9, 5);
+            GUI.Box(new Rect(rect.x, rect.y, 5, 5), EditorGUIUtility.IconContent("d_ProfilerTimelineDigDownArrow@2x"), ContexMenuOverlayStyle);
+
+            if (!HasFocus() && String.IsNullOrEmpty(text))
             {
-                String EnumName = Enum.GetName(typeof(SearchModePreferencesEditorWindow), EnumIt);
-                menu.AddItem(new GUIContent(EnumName), SearchMode == EnumIt, OnDropdownSelection, EnumName);
+                GUI.enabled = false;
+                GUI.Label(new Rect(rect.x + 14, rect.y, 40, rect.height), Enum.GetName(typeof(SearchModePreferencesEditorWindow), SearchMode));
+                GUI.enabled = true;
             }
-
-            menu.DropDown(rect);
+            ContexMenuOverlayStyle.contentOffset = new Vector2();
+            return result;
         }
 
-        // Render original search field
-        String result = base.OnGUI(rect, text, style, cancelButtonStyle, emptyCancelButtonStyle);
-
-        // Render additional images
-        GUIStyle ContexMenuOverlayStyle = GUIStyle.none;
-        ContexMenuOverlayStyle.contentOffset = new Vector2(9, 5);
-        GUI.Box(new Rect(rect.x, rect.y, 5, 5), EditorGUIUtility.IconContent("d_ProfilerTimelineDigDownArrow@2x"), ContexMenuOverlayStyle);
-
-        if (!HasFocus() && String.IsNullOrEmpty(text))
-        {
-            GUI.enabled = false;
-            GUI.Label(new Rect(rect.x + 14, rect.y, 40, rect.height), Enum.GetName(typeof(SearchModePreferencesEditorWindow), SearchMode));
-            GUI.enabled = true;
-        }
-        ContexMenuOverlayStyle.contentOffset = new Vector2();
-        return result;
+        public new string OnToolbarGUI(string text, params GUILayoutOption[] options) => this.OnToolbarGUI(GUILayoutUtility.GetRect(29f, 200f, 18f, 18f, EditorStyles.toolbarSearchField, options), text);
+        public new string OnToolbarGUI(Rect rect, string text) => this.OnGUI(rect, text, EditorStyles.toolbarSearchField, EditorStyles.toolbarButton, EditorStyles.toolbarButton);
     }
-
-    public new string OnToolbarGUI(string text, params GUILayoutOption[] options) => this.OnToolbarGUI(GUILayoutUtility.GetRect(29f, 200f, 18f, 18f, EditorStyles.toolbarSearchField, options), text);
-    public new string OnToolbarGUI(Rect rect, string text) => this.OnGUI(rect, text, EditorStyles.toolbarSearchField, EditorStyles.toolbarButton, EditorStyles.toolbarButton);
 }
